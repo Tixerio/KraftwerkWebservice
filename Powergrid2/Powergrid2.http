@@ -1,0 +1,6 @@
+@Powergrid2_HostAddress = http://localhost:5009
+
+GET {{Powergrid2_HostAddress}}/Powergrid/
+Accept: application/json
+
+###
