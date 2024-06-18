@@ -1,13 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Powergrid2.PowerGrid;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Text.Json;
-using System.Text.Json.Nodes;
-using System.Threading.Tasks;
-using System.Transactions;
-using System.Windows.Markup;
-using System.Reflection;
+
+using static Powergrid2.PowerGrid.Consumer;
 
 
 namespace Powergrid2.Controllers
@@ -29,13 +23,12 @@ namespace Powergrid2.Controllers
             
             if (grid.Members.ContainsKey(request) && grid.Started == true)
             {
-                Console.WriteLine("Received Request from " + grid.Members[request]);
+                Console.WriteLine("Received Request from " + grid.Members[request].Name);
                 grid.ChangeEnergy(request);
                 return Ok("Registered");
             }
             if(!grid.Members.ContainsKey(request))
             {
-                Console.WriteLine(grid.Members.Count());
                 return Ok("Unregistered.");
             }
 
@@ -72,6 +65,12 @@ namespace Powergrid2.Controllers
                 case "Consumer":
                     grid.Members.Add(ID, new Consumer(request.Name));
                     break;
+                case "Household":
+                    grid.Members.Add(ID, new Household(request.Name));
+                    break;
+                case "HouseholdPV":
+                    grid.Members.Add(ID, new HouseholdPV(request.Name));
+                    break;
             }
             return Ok(ID);
         }
@@ -94,6 +93,7 @@ namespace Powergrid2.Controllers
         public IActionResult Start()
         {
             grid.Start();
+            Task.Run(async () => grid.Env.DayCycle());
             return Ok();
         }
 

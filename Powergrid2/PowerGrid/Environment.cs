@@ -66,13 +66,9 @@ public class Environment
         while (true)
         {
             await Task.Delay(1000);
-            if (TimePassed%60 == 0)
-            {
-                Console.WriteLine($"Time: {Time.TimeOfDay}");
-            }
-
+          
             UpdateSunAndWind();
-            TimePassed = 1;
+            TimePassed = 5;
         }
     }
 
