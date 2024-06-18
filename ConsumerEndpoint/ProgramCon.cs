@@ -19,12 +19,18 @@ builder.Services.AddHttpClient<IPowergrid, Powergrid>(client =>
     client.BaseAddress = new Uri("https://localhost:7272/Powergrid/");
 });
 
+builder.Services.AddLogging(
+    loggingBuilder =>
+    {
+        loggingBuilder.AddFilter("Microsoft", LogLevel.Warning)
+            .AddFilter("System", LogLevel.Warning)
+            .AddFilter("NToastNotify", LogLevel.Warning)
+            .AddConsole();
+    });
+
 builder.Services.AddSingleton<ConsumerListener>();
 
 builder.Services.AddHostedService<Consumer>();
-
-builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
 
 var app = builder.Build();
 

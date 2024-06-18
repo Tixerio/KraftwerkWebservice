@@ -26,10 +26,12 @@ public class PowerPlant : BackgroundService
 
     private readonly IPowergrid powergrid;
     private CancellationToken stoppingToken;
+    private ILogger<PowerPlant> _logger;
 
-    public PowerPlant(IPowergrid powergrid)
+    public PowerPlant(IPowergrid powergrid, ILogger<PowerPlant> logger)
     {
         this.powergrid = powergrid;
+        _logger = logger;
         stoppingToken = new CancellationToken();
         powergrid.Register(stoppingToken);
     }
@@ -41,7 +43,7 @@ public class PowerPlant : BackgroundService
         while (!stoppingToken.IsCancellationRequested)
         {
             await powergrid.ChangeEnergy(stoppingToken);
-            Console.WriteLine("Has produced");
+            _logger.LogInformation("Has produced");
             await Task.Delay(2000, stoppingToken);
         }
     }
@@ -72,51 +74,61 @@ public class Powergrid : IPowergrid, IAsyncInitialization
 
     private int Pulses { get; set; } = 1;
 
+    public ILogger<Powergrid> _logger;
+
     private String? ID { get; set; }
 
-    public Powergrid(HttpClient httpClient)
+    public Powergrid(HttpClient httpClient, ILogger<Powergrid> logger)
     {
         this.httpClient = httpClient;
-        Initialization = InitializationAync();
+        _logger = logger;
+        Initialization = InitializationAsync();
     }
 
-    public Task InitializationAync()
+    public Task InitializationAsync()
     {
         Task.Run(async () => await Register(new CancellationToken()));
         return Task.CompletedTask;
     }
     public async Task ChangeEnergy(CancellationToken ct)
-        {
-            if (this.ID == null)
-            {
-                return;
-            }
-            var result = await httpClient.PostAsync("ChangeEnergy", JsonContent.Create(this.ID), ct);
-            String registered = await result.Content.ReadAsStringAsync(ct);
-            if (registered != "Registered")
-            {
-                Pulses = 1;
-                Console.WriteLine(registered + "\nPress any button to register...");
-                Console.ReadKey(true);
-                Register(ct);
-            }
-            result.EnsureSuccessStatusCode();
-        }
-    public async Task PulseChange(CancellationToken ct)
     {
-         
+        if (this.ID == null)
+        {
+            return;
+        }
+        var result = await httpClient.PostAsync("ChangeEnergy", JsonContent.Create(this.ID), ct);
+        String registered = await result.Content.ReadAsStringAsync(ct);
+        if (registered != "Registered")
+        {
+            Pulses = 1;
+            _logger.LogInformation(registered + "\nPress any button to register...");
+            Console.ReadKey(true);
+            await Register(ct);
+        }
+        result.EnsureSuccessStatusCode();
+    }
+
+    public Task PulseChange(CancellationToken ct)
+    {
+        throw new NotImplementedException();
     }
 
     public async Task Register(CancellationToken ct)
     {
-        var member = new MemberObject() { Name = "Kraftwerk", Type = "Powerplant" };
+        var member = new MemberObject("Kraftwerk", "Powerplant");
 
         var result = await httpClient.PostAsync("Register", JsonContent.Create(member));
-        this.ID = await result.Content.ReadAsStringAsync();
+        this.ID = await result.Content.ReadAsStringAsync(ct);
     }
 
     public class MemberObject
     {
+        public MemberObject(string name, string type)
+        {
+            Name = name;
+            Type = type;
+        }
+
         public string Name { get; set; }
         public string Type { get; set; }
     }

@@ -29,7 +29,7 @@ namespace Powergrid2.Controllers
             
             if (grid.Members.ContainsKey(request) && grid.Started == true)
             {
-                Console.WriteLine("Received Request");
+                Console.WriteLine("Received Request from " + grid.Members[request]);
                 grid.ChangeEnergy(request);
                 return Ok("Registered");
             }
@@ -39,12 +39,12 @@ namespace Powergrid2.Controllers
                 return Ok("Unregistered.");
             }
 
-            if (!grid.Started)
+            if(!grid.Started)
             {
                 return Ok("Not started yet.");
             }
 
-            return Ok("ok");
+            return Ok();
         }
 
         [HttpPost("GetIndividualPlan")]

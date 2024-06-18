@@ -7,7 +7,6 @@ using System.Reflection.PortableExecutable;
 
 var builder = Host.CreateApplicationBuilder(args);
 
-// Add services to the container.
 builder.Services.AddHostedService<LoggingService>();
 builder.Services.AddHttpClient<IPowergrid, Powergrid>(x => x.BaseAddress = new Uri("https://localhost:7272/Powergrid/"));
 builder.Services.AddLogging(
@@ -24,7 +23,6 @@ Console.ReadKey();
 
 public class LoggingService : BackgroundService
 {
-
     private readonly IPowergrid powergrid;
     private CancellationToken stoppingToken;
 
@@ -35,14 +33,12 @@ public class LoggingService : BackgroundService
        
     }
 
-
     public async Task ProduceEnergy(CancellationToken ct)
     {
         await powergrid.Start();
         while (!stoppingToken.IsCancellationRequested)
         {
              await powergrid.LogEnergy();
-
         }
     }
 
@@ -64,7 +60,6 @@ public class Powergrid : IPowergrid
 {
     private readonly HttpClient httpClient;
     private readonly ILogger<Powergrid> _logger;
-
 
     public Powergrid(HttpClient httpClient, ILogger<Powergrid> logger)
     {
@@ -100,32 +95,3 @@ public class Powergrid : IPowergrid
         await this.Start();
     }
 }
-
-/*
-public class LoggingService : BackgroundService
-{
-    private readonly HttpClient httpClient;
-    private Grid grid;
-    private readonly ILogger<Grid> _logger;
-
-    public LoggingService(Grid grid, ILogger<Grid> logger)
-    {
-        this.grid = grid;
-        _logger = logger;
-    }
-
-    protected override async Task ExecuteAsync(CancellationToken ct)
-    {
-        while (!ct.IsCancellationRequested)
-        {
-            var frequency = grid.AvailableEnergy / 10000 + 50;
-            _logger.LogInformation("Current Energy: "+grid.AvailableEnergy.ToString() + "  |  Frequency: " + frequency.ToString());
-            if (frequency <= 47.5 || frequency >= 52.5)
-            {
-                await grid.Blackout();
-            }
-            await Task.Delay(1000);
-        }
-
-    }
-}*/

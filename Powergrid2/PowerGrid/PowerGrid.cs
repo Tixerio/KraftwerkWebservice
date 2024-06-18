@@ -27,7 +27,6 @@ public class GridRequester : BackgroundService, IGridRequester
     {
         
     }
-
     public async Task GetIsConsuming()
     {
         var result = await httpClient.GetAsync("ChangeIsConnected");
@@ -49,7 +48,6 @@ public class Grid
     {
         _logger = logger;
         this.requester = requester;
-
         InitPlan();
     }
 
@@ -114,7 +112,6 @@ public class Grid
     }
 }
 
-
 public class Powerplant : IMember
 {
     public double Energy { get; set; } = 500;
@@ -128,9 +125,9 @@ public class Powerplant : IMember
 
 public class Consumer : IMember
 {
-    public double Energy { get; set; } = 500;
+    public double Energy { get; set; } = -500;
     public string Name { get; set; }
-
+     
     public Consumer(string name)
     {
         this.Name = name;

@@ -13,7 +13,6 @@ namespace ConsumerEndpoint.Consumer
     public class ConsumerListener
     {
         private readonly ILogger<ConsumerListener> _logger;
-  
 
         public ConsumerListener(ILogger<ConsumerListener> logger)
         {
@@ -21,19 +20,16 @@ namespace ConsumerEndpoint.Consumer
         }
     }
 
-
     public class Consumer : BackgroundService
     {
+        private readonly IPowergrid _powergrid;
+        private readonly ILogger<Consumer> _logger;
 
-        private readonly IPowergrid powergrid;
-        private double LastCheckedEnergy { get; set; }
-
-
-        public Consumer(IPowergrid powergrid)
+        public Consumer(IPowergrid powergrid, ILogger<Consumer> logger)
         {
-            this.powergrid = powergrid;
+            _powergrid = powergrid;
+            _logger = logger;
         }
-
 
         public async Task ConsumeEnergy(CancellationToken ct)
         {
@@ -41,26 +37,25 @@ namespace ConsumerEndpoint.Consumer
             {
                 if (!Consuming.isConsuming)
                 {
-                    Console.WriteLine("Not currently consuming.");
+                    _logger.LogInformation("Not currently consuming.");
                     await Task.Delay(2500, ct);
                     continue;
                 }
-                await powergrid.ChangeEnergy(ct);
-                Console.WriteLine("Has consumed");
+                await _powergrid.ChangeEnergy(ct);
+                _logger.LogInformation("Has consumed");
                 await Task.Delay(2500, ct);
             }
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            ConsumeEnergy(stoppingToken);
+            await ConsumeEnergy(stoppingToken);
         }
     }
 
     public interface IPowergrid
     {
         public Task ChangeEnergy(CancellationToken ct);
-
     }
 
     public interface IAsyncInitialization
@@ -70,20 +65,22 @@ namespace ConsumerEndpoint.Consumer
 
     public class Powergrid : IPowergrid, IAsyncInitialization
     {
-        private readonly HttpClient httpClient;
+        private readonly HttpClient _httpClient;
+        private readonly ILogger<Powergrid> _logger;
         public Task Initialization { get; private set; }
 
         private int Pulses { get; set; } = 1;
 
-        private String? ID { get; set; }
+        private string? ID { get; set; }
 
-        public Powergrid(HttpClient httpClient)
+        public Powergrid(HttpClient httpClient, ILogger<Powergrid> logger)
         {
-            this.httpClient = httpClient;
-            Initialization = InitializationAync();
+            _httpClient = httpClient;
+            _logger = logger;
+            Initialization = InitializationAsync();
         }
 
-        public Task InitializationAync()
+        public Task InitializationAsync()
         {
             Task.Run(async () => await Register(new CancellationToken()));
             return Task.CompletedTask;
@@ -96,37 +93,39 @@ namespace ConsumerEndpoint.Consumer
                 return;
             }
 
-            var result = await httpClient.PostAsync("ChangeEnergy", JsonContent.Create(this.ID), ct);
+            var result = await _httpClient.PostAsync("ChangeEnergy", JsonContent.Create(this.ID), ct);
+            string registered = await result.Content.ReadAsStringAsync(ct);
 
-            String registered = await result.Content.ReadAsStringAsync(ct);
-            Console.WriteLine(await result.Content.ReadAsStringAsync(ct));
             if (registered != "Registered")
             {
                 Pulses = 1;
-                Console.WriteLine(registered + "\nPress any button to register...");
+                _logger.LogInformation(registered + "\nPress any button to register...");
                 Console.ReadKey(true);
-                Register(ct);
+                await Register(ct);
             }
 
-            //result.IsSuccessStatusCode
             result.EnsureSuccessStatusCode();
         }
 
-
         public async Task Register(CancellationToken ct)
         {
+            var member = new MemberObject("Konsument", "Consumer");
 
-            var member = new MemberObject() { Name = "Konsument", Type = "Consumer" };
-
-            var result = await httpClient.PostAsJsonAsync("Register", member);
-            this.ID = await result.Content.ReadAsStringAsync();
+            var result = await _httpClient.PostAsJsonAsync("Register", member, cancellationToken: ct);
+            this.ID = await result.Content.ReadAsStringAsync(ct);
         }
 
         public class MemberObject
         {
+            public MemberObject(string name, string type)
+            {
+                Name = name;
+                Type = type;
+            }
+
             public string Name { get; set; }
             public string Type { get; set; }
         }
-
     }
 }
+
