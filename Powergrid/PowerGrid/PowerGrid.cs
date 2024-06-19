@@ -1,4 +1,4 @@
-﻿namespace Powergrid2.PowerGrid;
+﻿namespace Powergrid.PowerGrid;
 using Powergrid2.Utilities;
 
 public interface IMember
@@ -59,11 +59,15 @@ public class Grid
     {
         
         var member = Members.Where(x => x.Key == ID).Select(x => x.Value).FirstOrDefault();
-        if (member.GetType() == typeof(Consumer))
+        if (member.GetType() == typeof(Consumer) || member.GetType() == typeof(Consumer))
         {
-            Console.WriteLine(Env.GetTimeInTimeSpan());
             Consumer consumer = (Consumer)member;
             consumer.Hour = Env.GetTimeInTimeSpan().Hours;
+        }
+        else if (member.GetType() == typeof(Photovoltaic))
+        {
+            Photovoltaic consumer = (Photovoltaic)member;
+            consumer.Sunintensity = Env.SunIntensity;
         }
         AvailableEnergy += member.Energy;
     }
@@ -127,16 +131,42 @@ public class Powerplant : IMember
     }
 }
 
+public class Photovoltaic : Powerplant
+{
+    public double Sunintensity { get; set; } = 0;
+    private double energy;
+
+    public virtual double Energy
+    {
+        get
+        {
+            Console.WriteLine(this.energy * Sunintensity/10);
+            return this.energy * Sunintensity / 10;
+        }
+        set
+        {
+            this.energy = value;
+        }
+    }
+
+
+    public Photovoltaic(string name) : base(name)
+    {
+    }
+
+}
+
+
 public class Consumer : IMember
 {
-    private readonly double[] consumePercentDuringDayNight =
+    public readonly double[] consumePercentDuringDayNight =
     [
         0.125, 0.1875, 0.25, 0.1875, 0.375, 0.5, 0.75, 0.875, 0.8125, 0.875, 1, 1, 0.625, 0.6875, 0.5, 0.375, 0.375, 0.75, 0.5,
         0.5, 0.625, 0.3125, 0.1875, 0.1875
     ];
 
     public int Hour { get; set; } = 0;
-    private double energy;
+    public double energy;
 
     public virtual double Energy
     {
@@ -152,48 +182,49 @@ public class Consumer : IMember
     }
 
     public string Name { get; set; }
-     
+
     public Consumer(string name)
     {
         this.Energy = -1000;
-        Console.WriteLine(Energy);
         this.Name = name;
     }
 
-    public class Household : Consumer
+    
+}
+
+public class Household : Consumer
+{
+    public Household(string name) : base(name)
     {
-        public Household(string name) : base(name)
-        {
-        }
-    }
-
-    public class HouseholdPV : Consumer
-    {
-        public override double Energy
-        {
-            get
-            {
-
-                Console.WriteLine(this.energy * consumePercentDuringDayNight[Hour] + " PV: " + RandomPVValue());
-                return this.energy * consumePercentDuringDayNight[Hour] + RandomPVValue();
-            }
-
-            set
-            {
-                this.energy = value;
-            }
-        }
-
-        public HouseholdPV(string name) : base(name)
-        {
-        }
-
-        private double RandomPVValue()
-        {
-            return new Random().Next(0, 1000);
-        }
-
     }
 }
+
+public class HouseholdPV : Consumer
+{
+    public override double Energy
+    {
+        get
+        {
+            Console.WriteLine(this.energy * consumePercentDuringDayNight[Hour] + " PV: " + RandomPVValue());
+            return this.energy * consumePercentDuringDayNight[Hour] + RandomPVValue();
+        }
+
+        set
+        {
+            this.energy = value;
+        }
+    }
+
+    public HouseholdPV(string name) : base(name)
+    {
+    }
+
+    private double RandomPVValue()
+    {
+        return new Random().Next(0, 1000);
+    }
+
+}
+
 
 
