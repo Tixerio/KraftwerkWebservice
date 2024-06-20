@@ -1,7 +1,7 @@
 ﻿
 using Powergrid2.Utilities;
 
-namespace Powergrid2.PowerGrid;
+namespace Powergrid.PowerGrid;
 
 public class Scenarios
 {

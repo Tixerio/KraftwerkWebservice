@@ -1,6 +1,6 @@
-﻿using Powergrid2.PowerGrid;
+﻿using Powergrid.PowerGrid;
 
-namespace Powergrid2.Utilities;
+namespace Powergrid.Utilities;
 
 public class Sectors
 {

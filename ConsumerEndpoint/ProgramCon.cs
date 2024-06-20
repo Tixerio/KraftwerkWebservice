@@ -1,5 +1,7 @@
 using ConsumerEndpoint.Consumer;
 
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.SignalR.Client;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +27,11 @@ builder.Services.AddLogging(
 builder.Services.AddSingleton<ConsumerListener>();
 
 builder.Services.AddHostedService<Consumer>();
+builder.Services.AddTransient<HubConnection>((sp) => new HubConnectionBuilder()
+    .WithUrl("https://localhost:7272/Powergrid")
+    .Build());
+
+
 
 var app = builder.Build();
 

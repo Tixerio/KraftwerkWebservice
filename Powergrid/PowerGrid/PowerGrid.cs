@@ -1,5 +1,77 @@
-﻿namespace Powergrid.PowerGrid;
+﻿using Powergrid2.Controllers;
+
+namespace Powergrid.PowerGrid;
 using Powergrid2.Utilities;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNet.SignalR.Messaging;
+
+
+public interface IPowergridHubClient
+{
+    Task ReceiveMessage(string message);
+}
+
+
+public class PowergridHub : Hub<IPowergridHubClient>
+{
+    private Grid grid;
+
+    public PowergridHub(Grid grid)
+    {
+        this.grid = grid;
+    }
+
+    public async Task BroadcastMessage()
+    {
+        Console.WriteLine("Test");
+    }
+
+    public async Task ChangeEnergyR(string ID)
+    {
+        grid.ChangeEnergy(ID);
+    }
+
+    public async Task RegisterR(PowergridController.MemberObject request)
+    {
+        var ID = Guid.NewGuid().ToString();
+        switch (request.Type)
+        {
+            case "Powerplant":
+                grid.Members.Add(ID, new Powerplant(request.Name));
+                break;
+            case "Consumer":
+                grid.Members.Add(ID, new Consumer(request.Name));
+                break;
+            case "Household":
+                grid.Members.Add(ID, new Household(request.Name));
+                break;
+            case "HouseholdPV":
+                grid.Members.Add(ID, new HouseholdPV(request.Name));
+                break;
+        }
+
+        await Clients.Caller.ReceiveMessage(ID);
+    }
+
+    public async Task GetEnergyR()
+    {
+        Clients.Caller.ReceiveMessage(grid.AvailableEnergy.ToString());
+    }
+
+    public override async Task OnConnectedAsync()
+    {
+        await base.OnConnectedAsync();
+        // Example: send a welcome message to all clients when a new client connects
+        
+    }
+
+    public override async Task OnDisconnectedAsync(Exception? exception)
+    {
+        await base.OnDisconnectedAsync(exception);
+    }
+}
+
+
 
 public interface IMember
 {
@@ -50,10 +122,6 @@ public class Grid
 
     public double AvailableEnergy { get; set; }
 
-    public static double ConsumeRandomEnergy()
-    {
-        return new Random().Next(-700, -300);
-    }
 
     public async void ChangeEnergy(String ID)
     {
@@ -109,6 +177,7 @@ public class Grid
 
     public async Task Start()
     {
+        Console.WriteLine("Started");
         Members.Clear();
         AvailableEnergy = 0;
         Started = true;

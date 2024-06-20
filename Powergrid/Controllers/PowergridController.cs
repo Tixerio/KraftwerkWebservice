@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using Powergrid2.PowerGrid;
+using Powergrid.PowerGrid;
 
-using static Powergrid2.PowerGrid.Consumer;
+using static Powergrid.PowerGrid.Consumer;
 
 
 namespace Powergrid2.Controllers
@@ -23,7 +23,7 @@ namespace Powergrid2.Controllers
             
             if (grid.Members.ContainsKey(request) && grid.Started == true)
             {
-                Console.WriteLine("Received Request from " + grid.Members[request].Name);
+                //Console.WriteLine("Received Request from " + grid.Members[request].Name);
                 grid.ChangeEnergy(request);
                 return Ok("Registered");
             }
