@@ -25,7 +25,7 @@ public class PowerPlant : BackgroundService
 
     public async Task ProduceEnergy(CancellationToken ct)
     {
-        
+
         while (!stoppingToken.IsCancellationRequested)
         {
             if (powergrid.getID() == null)
@@ -62,16 +62,10 @@ public interface IPowergrid
     public String getID();
 
 }
-public interface IAsyncInitialization
-{
-    public Task Initialization { get; }
-}
 
-public class Powergrid : IPowergrid, IAsyncInitialization
+public class Powergrid : IPowergrid
 {
     private readonly HttpClient httpClient;
-    public Task Initialization { get; private set; }
-
     private int Pulses { get; set; } = 1;
 
     public ILogger<Powergrid> _logger;
@@ -83,31 +77,38 @@ public class Powergrid : IPowergrid, IAsyncInitialization
         return (this.ID);
     }
 
-    private HubConnection hub;
     private bool started = false;
+    public IOptionsMonitor<ApplicationOptions> Options { get; set; }
 
 
 
-    public Powergrid(HttpClient httpClient, ILogger<Powergrid> logger, HubConnection hub)
+    public Powergrid(HttpClient httpClient, ILogger<Powergrid> logger, IOptionsMonitor<ApplicationOptions> options)
     {
         this.httpClient = httpClient;
         _logger = logger;
-        this.hub = hub;
-        Initialization = InitializationAsync();
+        this.Options = options;
+    }
 
+    private HubConnection CreateHub()
+    {
+        HubConnection hub = new HubConnectionBuilder().WithUrl(Options.CurrentValue.HubAddress)
+            .Build();
+        hub.StartAsync();
+        return hub;
     }
 
     public async void StartClient()
     {
         if (started == false)
         {
-       
+            
             started = true;
         }
     }
 
     public async void RegisterR()
     {
+        HubConnection hub = CreateHub();
         await hub.SendAsync("RegisterR", new MemberObject("Fabi", "Powerplant"));
         hub.On<string>("ReceiveMessage",
             message => this.ID = message);
@@ -115,7 +116,7 @@ public class Powergrid : IPowergrid, IAsyncInitialization
 
     public async void ChangeEnergyR()
     {
- 
+        HubConnection hub = CreateHub();
         await hub.SendAsync("ChangeEnergyR", this.ID);
         hub.On<string>("ReceiveMessage",
             message =>
@@ -128,11 +129,7 @@ public class Powergrid : IPowergrid, IAsyncInitialization
             });
     }
 
-    public Task InitializationAsync()
-    {
-        hub.StartAsync();
-        return Task.CompletedTask;
-    }
+   
     /*public async Task ChangeEnergy(CancellationToken ct)
     {
         if (this.ID == null)

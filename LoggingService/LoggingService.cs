@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Options;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.SignalR;
 
 public class LoggingService : BackgroundService
 {
@@ -11,13 +12,12 @@ public class LoggingService : BackgroundService
     {
         this.powergrid = powergrid;
         stoppingToken = new CancellationToken();
-
     }
 
     public async Task ProduceEnergy(CancellationToken ct)
     {
-        await powergrid.Start();
 
+        await powergrid.Start();
         while (!stoppingToken.IsCancellationRequested)
         {
             await powergrid.LogEnergy();
@@ -41,39 +41,47 @@ public class Powergrid : IPowergrid
 {
     private readonly HttpClient httpClient;
     private readonly ILogger<Powergrid> _logger;
-    private double energy = 0;
+    private double energy = 1;
+    public IOptionsMonitor<ApplicationOptions> Options { get; set; }
 
-    private HubConnection hub;
 
-    public Powergrid(HttpClient httpClient, ILogger<Powergrid> logger, HubConnection hub)
+
+    public Powergrid(HttpClient httpClient, ILogger<Powergrid> logger, IOptionsMonitor<ApplicationOptions> options)
     {
+
         this.httpClient = httpClient;
         _logger = logger;
-        this.hub = hub;
-        
+        this.Options = options;
 
+    }
+
+    private HubConnection CreateHub()
+    {
+        HubConnection hub = new HubConnectionBuilder().WithUrl(Options.CurrentValue.HubAddress)
+            .Build();
+        hub.StartAsync();
+        return hub;
     }
 
     public async Task LogEnergy()
     {
+        HubConnection hub = CreateHub();
+
         try
         {
             await hub.SendAsync("GetEnergyR");
+
             hub.On<string>("ReceiveMessage",
                 message =>
                 {
-                    Console.WriteLine(message);
+                    Console.WriteLine();
                     this.energy = float.Parse(message);
-                    hub.Remove("ReceiveMessage");
                 });
-
         }
         catch (Exception e)
         {
             Console.WriteLine(e);
-        }
-
-     
+        }     
 
         var frequency = energy / 10000 + 50;
         _logger.LogInformation("Energy: " + energy + "  |  Frequency: " + frequency);
@@ -87,15 +95,19 @@ public class Powergrid : IPowergrid
 
     public async Task Start()
     {
+
         Console.WriteLine("Press any button to start...");
         this.energy = 0;
         Console.ReadKey(true);
-        await hub.StartAsync();
-    
+        HubConnection hub = CreateHub();
+
+
     }
 
     public async Task Blackout()
     {
+        HubConnection hub = CreateHub();
+
         await hub.SendAsync("ResetEnergy");
         Console.WriteLine("Blackout\n\n" +
                           "  .-\"\"\"\"\"\"-.\n /          \\\n|   >_<      |\n \\          /\n  '-......-'");

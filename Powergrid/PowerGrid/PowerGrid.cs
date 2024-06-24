@@ -1,4 +1,5 @@
 ﻿using Powergrid2.Controllers;
+using Console = System.Console;
 
 namespace Powergrid.PowerGrid;
 using Powergrid2.Utilities;
@@ -60,7 +61,7 @@ public class PowergridHub : Hub<IPowergridHubClient>
 
     public async Task GetEnergyR()
     {
-        Clients.Caller.ReceiveMessage(grid.AvailableEnergy.ToString());
+        await Clients.Caller.ReceiveMessage(grid.AvailableEnergy.ToString());
     }
 
     public async Task ResetEnergy()
@@ -200,7 +201,6 @@ public class Grid
     public async Task Blackout()
     {
         Members.Clear();
-        Console.WriteLine(Members.Count);
         Started = false;
     }
 }
