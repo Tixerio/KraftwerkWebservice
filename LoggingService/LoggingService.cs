@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR.Client;
-using Console = System.Console;
+using Microsoft.Extensions.Options;
+using System.ComponentModel.DataAnnotations;
 
 public class LoggingService : BackgroundService
 {
@@ -28,7 +29,6 @@ public class LoggingService : BackgroundService
         ProduceEnergy(stoppingToken);
         return Task.CompletedTask;
     }
-
 }
 
 public interface IPowergrid
@@ -41,6 +41,7 @@ public class Powergrid : IPowergrid
 {
     private readonly HttpClient httpClient;
     private readonly ILogger<Powergrid> _logger;
+    private double energy = 0;
 
     private HubConnection hub;
 
@@ -49,25 +50,30 @@ public class Powergrid : IPowergrid
         this.httpClient = httpClient;
         _logger = logger;
         this.hub = hub;
+        
+
     }
 
     public async Task LogEnergy()
     {
-     
-        double energy = 0;
         try
         {
             await hub.SendAsync("GetEnergyR");
+            hub.On<string>("ReceiveMessage",
+                message =>
+                {
+                    Console.WriteLine(message);
+                    this.energy = float.Parse(message);
+                    hub.Remove("ReceiveMessage");
+                });
+
         }
         catch (Exception e)
         {
             Console.WriteLine(e);
         }
 
-        //Getenergy geht nit :(
-        hub.On<string>("GetEnergyResponse",
-            message => energy = float.Parse(message));
-    
+     
 
         var frequency = energy / 10000 + 50;
         _logger.LogInformation("Energy: " + energy + "  |  Frequency: " + frequency);
@@ -76,21 +82,49 @@ public class Powergrid : IPowergrid
             await this.Blackout();
         }
         await Task.Delay(1000);
+      
     }
 
     public async Task Start()
     {
         Console.WriteLine("Press any button to start...");
+        this.energy = 0;
         Console.ReadKey(true);
         await hub.StartAsync();
-        await httpClient.GetAsync("Start");
+    
     }
 
     public async Task Blackout()
     {
+        await hub.SendAsync("ResetEnergy");
         Console.WriteLine("Blackout\n\n" +
                           "  .-\"\"\"\"\"\"-.\n /          \\\n|   >_<      |\n \\          /\n  '-......-'");
-        await httpClient.GetAsync("BlackoutScenario");
+        await hub.StopAsync();
         await this.Start();
+    }
+}
+
+public class ApplicationOptions
+{
+    public const string Key = "HubCon"; // Defines the key for the options section
+
+    [Required(ErrorMessage = "Address Required")]
+    public string HubAddress { get; set; } // Stores the HubAddress with a validation attribute
+}
+
+// ApplicationOptionsSetup class
+public class ApplicationOptionsSetup : IConfigureOptions<ApplicationOptions>
+{
+    private const string SectionName = "HubCon"; // Ensures this matches the JSON section name
+    private readonly IConfiguration _configuration;
+
+    public ApplicationOptionsSetup(IConfiguration configuration)
+    {
+        _configuration = configuration; // Injects the configuration
+    }
+
+    public void Configure(ApplicationOptions options)
+    {
+        _configuration.GetSection(SectionName).Bind(options); // Binds the configuration section to the ApplicationOptions instance
     }
 }

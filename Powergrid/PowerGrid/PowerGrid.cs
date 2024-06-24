@@ -23,11 +23,16 @@ public class PowergridHub : Hub<IPowergridHubClient>
 
     public async Task BroadcastMessage()
     {
-        Console.WriteLine("Test");
+        Clients.All.ReceiveMessage("Not registered");
     }
 
-    public async Task ChangeEnergyR(string ID)
+    public async Task ChangeEnergyR(string? ID)
     {
+        if (ID != null && !grid.Members.ContainsKey(ID))
+        {
+            await Clients.Caller.ReceiveMessage("Not registered");
+            return;
+        }
         grid.ChangeEnergy(ID);
     }
 
@@ -49,13 +54,19 @@ public class PowergridHub : Hub<IPowergridHubClient>
                 grid.Members.Add(ID, new HouseholdPV(request.Name));
                 break;
         }
-
+        Console.WriteLine("Registered");
         await Clients.Caller.ReceiveMessage(ID);
     }
 
     public async Task GetEnergyR()
     {
         Clients.Caller.ReceiveMessage(grid.AvailableEnergy.ToString());
+    }
+
+    public async Task ResetEnergy()
+    {
+        grid.Members.Clear();
+        grid.AvailableEnergy = 0;
     }
 
     public override async Task OnConnectedAsync()
@@ -127,16 +138,20 @@ public class Grid
     {
         
         var member = Members.Where(x => x.Key == ID).Select(x => x.Value).FirstOrDefault();
-        if (member.GetType() == typeof(Consumer) || member.GetType() == typeof(Consumer))
+        if (member.GetType() == typeof(Consumer))
         {
             Consumer consumer = (Consumer)member;
             consumer.Hour = Env.GetTimeInTimeSpan().Hours;
         }
-        else if (member.GetType() == typeof(Photovoltaic))
+        else if (member.GetType() == typeof(Powerplant))
         {
-            Photovoltaic consumer = (Photovoltaic)member;
-            consumer.Sunintensity = Env.SunIntensity;
+            if (member.GetType() == typeof(Photovoltaic))
+            {
+                Photovoltaic consumer = (Photovoltaic)member;
+                consumer.Sunintensity = Env.SunIntensity;
+            }
         }
+        
         AvailableEnergy += member.Energy;
     }
 
@@ -178,13 +193,14 @@ public class Grid
     public async Task Start()
     {
         Console.WriteLine("Started");
-        Members.Clear();
         AvailableEnergy = 0;
         Started = true;
     }
 
     public async Task Blackout()
     {
+        Members.Clear();
+        Console.WriteLine(Members.Count);
         Started = false;
     }
 }
@@ -218,13 +234,11 @@ public class Photovoltaic : Powerplant
         }
     }
 
-
     public Photovoltaic(string name) : base(name)
     {
     }
 
 }
-
 
 public class Consumer : IMember
 {

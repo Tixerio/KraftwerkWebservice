@@ -2,6 +2,7 @@
 
 
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.Options;
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -16,11 +17,35 @@ builder.Services.AddLogging(
             .AddConsole();
     });
 
-builder.Services.AddTransient<HubConnection>((sp) => new HubConnectionBuilder()
-    .WithUrl("https://localhost:7272/Powergrid")
-    .Build());
+builder.Services.Configure<ApplicationOptions>(
+    builder.Configuration.GetSection("HubCon"));
+builder.Services.ConfigureOptions<ApplicationOptionsSetup>();
+
+builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+
+builder.Services.AddSingleton(sp =>
+{
+    var optionsMonitor = sp.GetRequiredService<IOptionsMonitor<ApplicationOptions>>();
+    var hubConnection = new HubConnectionBuilder()
+        .WithUrl(optionsMonitor.CurrentValue.HubAddress)
+        .Build();
+
+
+    return hubConnection;
+});
+
+builder.Services.AddTransient<LoggingService>();
 
 var app = builder.Build();
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
+var optionsMonitor = app.Services.GetRequiredService<IOptionsMonitor<ApplicationOptions>>();
+
+optionsMonitor.OnChange(options =>
+{
+    logger.LogInformation("Application Address Updated: {HubAddress}", options.HubAddress);
+    // Optionally handle the reconnection logic here if needed
+});
 app.Run();
 Console.ReadKey();
+
 

@@ -1,186 +1,203 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using System.ComponentModel.DataAnnotations;
+using System.Net.Http.Json;
 
-namespace ConsumerEndpoint.Consumer
+
+public class Consumer : BackgroundService
 {
-    static class Consuming
+
+    private readonly IPowergrid powergrid;
+    private CancellationToken stoppingToken;
+    private ILogger<Consumer> _logger;
+    public Consumer(IPowergrid powergrid, ILogger<Consumer> logger)
     {
-        public static bool isConsuming = true;
+        this.powergrid = powergrid;
+        _logger = logger;
+        stoppingToken = new CancellationToken();
+
+        powergrid.StartClient();
     }
 
-    public class ConsumerListener
+
+    public async Task ProduceEnergy(CancellationToken ct)
     {
-        private readonly ILogger<ConsumerListener> _logger;
 
-        public ConsumerListener(ILogger<ConsumerListener> logger)
+        while (!stoppingToken.IsCancellationRequested)
         {
-            _logger = logger;
-        }
-    }
-
-    public class Consumer : BackgroundService
-    {
-        private readonly IPowergrid powergrid;
-        private readonly ILogger<Consumer> _logger;
-
-        public Consumer(IPowergrid powergrid, ILogger<Consumer> logger, HubConnection hub)
-        {
-            this.powergrid = powergrid;
-            _logger = logger;
-            powergrid.StartClient();
-            powergrid.RegisterR();
-        }
-
-        public async Task ConsumeEnergy(CancellationToken ct)
-        {
-            while (!ct.IsCancellationRequested)
+            if (powergrid.getID() == null)
             {
-                if (!Consuming.isConsuming)
-                {
-                    _logger.LogInformation("Not currently consuming.");
-                    await Task.Delay(2500, ct);
-                    continue;
-                }
-                powergrid.ChangeEnergyR();
-                await powergrid.ChangeEnergy(ct);
-                _logger.LogInformation("Has produced");
-                await Task.Delay(2000, ct);
-            }
-        }
-
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            await ConsumeEnergy(stoppingToken);
-        }
-    }
-
-    public interface IPowergrid
-    {
-        public Task ChangeEnergy(CancellationToken ct);
-        //public Task PulseChange(CancellationToken ct);
-        public Task Register(CancellationToken ct);
-        public void StartClient();
-        public void ChangeEnergyR();
-        public void RegisterR();
-    }
-
-    public interface IAsyncInitialization
-    {
-        public Task Initialization { get; }
-    }
-
-    public class Powergrid : IPowergrid, IAsyncInitialization
-    {
-        private readonly HttpClient httpClient;
-        private readonly ILogger<Powergrid> _logger;
-        public Task Initialization { get; private set; }
-
-        private int Pulses { get; set; } = 1;
-
-        private HubConnection hub;
-        private string? ID { get; set; }
-        private bool started = false;
-
-
-        public Powergrid(HttpClient httpClient, ILogger<Powergrid> logger, HubConnection hub)
-        {
-            this.httpClient = httpClient;
-            _logger = logger;
-            this.hub = hub;
-            Initialization = InitializationAsync();
-        }
-
-        public async void StartClient()
-        {
-
-            hub.On<string>("ReceiveMessage",
-                message => Console.WriteLine($"SignalR Hub Message: {message}"));
-
-            if (started == false)
-            {
-                await hub.StartAsync();
-                started = true;
-            }
-        }
-
-        public async void RegisterR()
-        {
-            await hub.SendAsync("RegisterR", new MemberObject("Fabi", "Powerplant"));
-
-            hub.On<string>("RegisterResponse",
-                message => this.ID = message);
-        }
-
-        public async void ChangeEnergyR()
-        {
-            if (this.ID == null)
-            {
-                return;
-            }
-            await hub.SendAsync("ChangeEnergyMessage", this.ID);
-
-            hub.On<string>("ChangeEnergyResponse",
-                message =>
-                {
-
-                    if (message != "Registered")
-                    {
-                        Pulses = 1;
-                        _logger.LogInformation(message + "\nPress any button to register...");
-                        Console.ReadKey(true);
-                        RegisterR();
-                    }
-                });
-
-            Console.WriteLine("ID: " + this.ID);
-        }
-
-        public Task InitializationAsync()
-        {
-            Task.Run(async () => await Register(new CancellationToken()));
-            return Task.CompletedTask;
-        }
-
-        public async Task ChangeEnergy(CancellationToken ct)
-        {
-            if (this.ID == null)
-            {
-                return;
-            }
-
-            var result = await httpClient.PostAsync("ChangeEnergy", JsonContent.Create(this.ID), ct);
-            string registered = await result.Content.ReadAsStringAsync(ct);
-
-            if (registered != "Registered")
-            {
-                Pulses = 1;
-                _logger.LogInformation(registered + "\nPress any button to register...");
+                Console.WriteLine("Not Registered, push any button to register");
                 Console.ReadKey(true);
-                await Register(ct);
+                powergrid.RegisterR();
+                while (powergrid.getID() == null)
+                {
+                    await Task.Delay(1000, stoppingToken);
+                }
             }
-
-            result.EnsureSuccessStatusCode();
+            powergrid.ChangeEnergyR();
+            _logger.LogInformation("Has consumed");
+            await Task.Delay(2000, stoppingToken);
         }
+    }
 
-        public async Task Register(CancellationToken ct)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        await ProduceEnergy(stoppingToken);
+    }
+
+}
+
+public interface IPowergrid
+{
+    //public Task ChangeEnergy(CancellationToken ct);
+    public Task PulseChange(CancellationToken ct);
+    public Task Register(CancellationToken ct);
+    public void StartClient();
+    public void ChangeEnergyR();
+    public void RegisterR();
+    public String getID();
+
+}
+public interface IAsyncInitialization
+{
+    public Task Initialization { get; }
+}
+
+public class Powergrid : IPowergrid, IAsyncInitialization
+{
+    private readonly HttpClient httpClient;
+    public Task Initialization { get; private set; }
+
+    private int Pulses { get; set; } = 1;
+
+    public ILogger<Powergrid> _logger;
+
+    public String? ID { get; set; }
+
+    public String getID()
+    {
+        return (this.ID);
+    }
+
+    private HubConnection hub;
+    private bool started = false;
+
+
+
+    public Powergrid(HttpClient httpClient, ILogger<Powergrid> logger, HubConnection hub)
+    {
+        this.httpClient = httpClient;
+        _logger = logger;
+        this.hub = hub;
+        Initialization = InitializationAsync();
+
+    }
+
+    public async void StartClient()
+    {
+        if (started == false)
         {
-            var member = new MemberObject("Konsument", "Consumer");
 
-            var result = await httpClient.PostAsJsonAsync("Register", member, cancellationToken: ct);
-            this.ID = await result.Content.ReadAsStringAsync(ct);
+            started = true;
         }
+    }
 
-        public class MemberObject
-        {
-            public MemberObject(string name, string type)
+    public async void RegisterR()
+    {
+        await hub.SendAsync("RegisterR", new MemberObject("Fabi", "Consumer"));
+        hub.On<string>("ReceiveMessage",
+            message => this.ID = message);
+    }
+
+    public async void ChangeEnergyR()
+    {
+
+        await hub.SendAsync("ChangeEnergyR", this.ID);
+        hub.On<string>("ReceiveMessage",
+            message =>
             {
-                Name = name;
-                Type = type;
-            }
+                if (message != "Registered")
+                {
+                    Pulses = 1;
+                    this.ID = null;
+                }
+            });
+    }
 
-            public string Name { get; set; }
-            public string Type { get; set; }
+    public Task InitializationAsync()
+    {
+        hub.StartAsync();
+        return Task.CompletedTask;
+    }
+    /*public async Task ChangeEnergy(CancellationToken ct)
+    {
+        if (this.ID == null)
+        {
+            return;
         }
+        var result = await httpClient.PostAsync("ChangeEnergy", JsonContent.Create(this.ID), ct);
+        String registered = await result.Content.ReadAsStringAsync(ct);
+        if (registered != "Registered")
+        {
+            Pulses = 1;
+            _logger.LogInformation(registered + "\nPress any button to register...");
+            Console.ReadKey(true);
+            await Register(ct);
+        }
+        result.EnsureSuccessStatusCode();
+    }*/
+
+    public Task PulseChange(CancellationToken ct)
+    {
+        throw new NotImplementedException();
+    }
+
+    public async Task Register(CancellationToken ct)
+    {
+        var member = new MemberObject("Kraftwerk", "Consumer");
+
+        var result = await httpClient.PostAsync("Register", JsonContent.Create(member));
+        this.ID = await result.Content.ReadAsStringAsync(ct);
+    }
+
+    public class MemberObject
+    {
+        public MemberObject(string name, string type)
+        {
+            Name = name;
+            Type = type;
+        }
+
+        public string Name { get; set; }
+        public string Type { get; set; }
     }
 }
 
+public class ApplicationOptions
+{
+    public const string Key = "HubCon"; // Defines the key for the options section
+
+    [Required(ErrorMessage = "Address Required")]
+    public string HubAddress { get; set; } // Stores the HubAddress with a validation attribute
+}
+
+// ApplicationOptionsSetup class
+public class ApplicationOptionsSetup : IConfigureOptions<ApplicationOptions>
+{
+    private const string SectionName = "HubCon"; // Ensures this matches the JSON section name
+    private readonly IConfiguration _configuration;
+
+    public ApplicationOptionsSetup(IConfiguration configuration)
+    {
+        _configuration = configuration; // Injects the configuration
+    }
+
+    public void Configure(ApplicationOptions options)
+    {
+        _configuration.GetSection(SectionName).Bind(options); // Binds the configuration section to the ApplicationOptions instance
+    }
+}

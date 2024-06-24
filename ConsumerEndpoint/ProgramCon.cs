@@ -1,43 +1,59 @@
-using ConsumerEndpoint.Consumer;
+// See https://aka.ms/new-console-template for more information
+
 
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.Options;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = Host.CreateApplicationBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-builder.Services.AddHttpClient<IPowergrid, Powergrid>(client =>
-{
-    client.BaseAddress = new Uri("https://localhost:7272/Powergrid/");
-});
-
+builder.Services.AddHostedService<Consumer>();
+builder.Services.AddHttpClient<IPowergrid, Powergrid>(x => x.BaseAddress = new Uri("https://localhost:7272/Powergrid/"));
 builder.Services.AddLogging(
-    loggingBuilder =>
+    builder =>
     {
-        loggingBuilder.AddFilter("Microsoft", LogLevel.Warning)
+        builder.AddFilter("Microsoft", LogLevel.Warning)
             .AddFilter("System", LogLevel.Warning)
             .AddFilter("NToastNotify", LogLevel.Warning)
             .AddConsole();
     });
 
-builder.Services.AddSingleton<ConsumerListener>();
+builder.Services.Configure<ApplicationOptions>(
+    builder.Configuration.GetSection("HubCon"));
+builder.Services.ConfigureOptions<ApplicationOptionsSetup>();
 
-builder.Services.AddHostedService<Consumer>();
-builder.Services.AddTransient<HubConnection>((sp) => new HubConnectionBuilder()
-    .WithUrl("https://localhost:7272/Powergrid")
-    .Build());
+builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+
+// Register HubConnection as a singleton
+builder.Services.AddSingleton(sp =>
+{
+    var optionsMonitor = sp.GetRequiredService<IOptionsMonitor<ApplicationOptions>>();
+    var hubConnection = new HubConnectionBuilder()
+        .WithUrl(optionsMonitor.CurrentValue.HubAddress)
+        .Build();
 
 
+    return hubConnection;
+});
 
+// Register MyProgram as a transient service
+builder.Services.AddTransient<Consumer>();
+
+// Build the application.
 var app = builder.Build();
 
-app.UseSwagger();
-app.UseSwaggerUI();
+// Retrieve and log the ApplicationOptions during startup.
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
+var optionsMonitor = app.Services.GetRequiredService<IOptionsMonitor<ApplicationOptions>>();
 
-app.MapControllers();
+optionsMonitor.OnChange(options =>
+{
+    logger.LogInformation("Application Address Updated: {HubAddress}", options.HubAddress);
+    // Optionally handle the reconnection logic here if needed
+});
 
 app.Run();
+
+app.Run();
+Console.ReadKey();

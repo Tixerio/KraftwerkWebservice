@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using System.ComponentModel.DataAnnotations;
 using System.Net.Http.Json;
 
 
@@ -16,9 +18,8 @@ public class PowerPlant : BackgroundService
         this.powergrid = powergrid;
         _logger = logger;
         stoppingToken = new CancellationToken();
-        powergrid.StartClient();
-        powergrid.RegisterR();
 
+        powergrid.StartClient();
     }
 
 
@@ -27,29 +28,38 @@ public class PowerPlant : BackgroundService
         
         while (!stoppingToken.IsCancellationRequested)
         {
+            if (powergrid.getID() == null)
+            {
+                Console.WriteLine("Not Registered, push any button to register");
+                Console.ReadKey(true);
+                powergrid.RegisterR();
+                while (powergrid.getID() == null)
+                {
+                    await Task.Delay(1000, stoppingToken);
+                }
+            }
             powergrid.ChangeEnergyR();
-            await powergrid.ChangeEnergy(stoppingToken);
             _logger.LogInformation("Has produced");
             await Task.Delay(2000, stoppingToken);
         }
     }
 
-    protected override Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        ProduceEnergy(stoppingToken);
-        return Task.CompletedTask;
+        await ProduceEnergy(stoppingToken);
     }
 
 }
 
 public interface IPowergrid
 {
-    public Task ChangeEnergy(CancellationToken ct);
+    //public Task ChangeEnergy(CancellationToken ct);
     public Task PulseChange(CancellationToken ct);
     public Task Register(CancellationToken ct);
     public void StartClient();
     public void ChangeEnergyR();
     public void RegisterR();
+    public String getID();
 
 }
 public interface IAsyncInitialization
@@ -66,7 +76,12 @@ public class Powergrid : IPowergrid, IAsyncInitialization
 
     public ILogger<Powergrid> _logger;
 
-    private String? ID { get; set; }
+    public String? ID { get; set; }
+
+    public String getID()
+    {
+        return (this.ID);
+    }
 
     private HubConnection hub;
     private bool started = false;
@@ -84,13 +99,9 @@ public class Powergrid : IPowergrid, IAsyncInitialization
 
     public async void StartClient()
     {
-
-        hub.On<string>("ReceiveMessage",
-            message => Console.WriteLine($"SignalR Hub Message: {message}"));
-
         if (started == false)
         {
-            await hub.StartAsync();
+       
             started = true;
         }
     }
@@ -98,41 +109,31 @@ public class Powergrid : IPowergrid, IAsyncInitialization
     public async void RegisterR()
     {
         await hub.SendAsync("RegisterR", new MemberObject("Fabi", "Powerplant"));
-
-        hub.On<string>("RegisterResponse",
+        hub.On<string>("ReceiveMessage",
             message => this.ID = message);
     }
 
     public async void ChangeEnergyR()
     {
-        if (this.ID == null)
-        {
-            return;
-        }
-        await hub.SendAsync("ChangeEnergyMessage", this.ID);
-
-        hub.On<string>("ChangeEnergyResponse",
+ 
+        await hub.SendAsync("ChangeEnergyR", this.ID);
+        hub.On<string>("ReceiveMessage",
             message =>
             {
-                
                 if (message != "Registered")
                 {
                     Pulses = 1;
-                    _logger.LogInformation(message + "\nPress any button to register...");
-                    Console.ReadKey(true);
-                    RegisterR();
+                    this.ID = null;
                 }
             });
-       
-        Console.WriteLine("ID: " + this.ID);
     }
 
     public Task InitializationAsync()
     {
-        Task.Run(async () => await Register(new CancellationToken()));
+        hub.StartAsync();
         return Task.CompletedTask;
     }
-    public async Task ChangeEnergy(CancellationToken ct)
+    /*public async Task ChangeEnergy(CancellationToken ct)
     {
         if (this.ID == null)
         {
@@ -148,7 +149,7 @@ public class Powergrid : IPowergrid, IAsyncInitialization
             await Register(ct);
         }
         result.EnsureSuccessStatusCode();
-    }
+    }*/
 
     public Task PulseChange(CancellationToken ct)
     {
@@ -173,5 +174,30 @@ public class Powergrid : IPowergrid, IAsyncInitialization
 
         public string Name { get; set; }
         public string Type { get; set; }
+    }
+}
+
+public class ApplicationOptions
+{
+    public const string Key = "HubCon"; // Defines the key for the options section
+
+    [Required(ErrorMessage = "Address Required")]
+    public string HubAddress { get; set; } // Stores the HubAddress with a validation attribute
+}
+
+// ApplicationOptionsSetup class
+public class ApplicationOptionsSetup : IConfigureOptions<ApplicationOptions>
+{
+    private const string SectionName = "HubCon"; // Ensures this matches the JSON section name
+    private readonly IConfiguration _configuration;
+
+    public ApplicationOptionsSetup(IConfiguration configuration)
+    {
+        _configuration = configuration; // Injects the configuration
+    }
+
+    public void Configure(ApplicationOptions options)
+    {
+        _configuration.GetSection(SectionName).Bind(options); // Binds the configuration section to the ApplicationOptions instance
     }
 }
