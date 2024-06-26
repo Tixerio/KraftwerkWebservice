@@ -11,7 +11,7 @@
     <h1>Kraftwerk Frontend!</h1>
     <h2>Current Energy: @Energy</h2>
     <button @onclick="GetEnergyStart">Start</button>
-</div>
+
 
 <LineChart @ref="horizontalLineChart" TItem="LiveDataPoint" OptionsObject="@horizontalLineChartOptions">
     <ChartStreaming TItem="LiveDataPoint"
@@ -24,7 +24,7 @@
     Random random = new Random(DateTime.Now.Millisecond);
 
     string[] Labels = { "Red", "Blue", "Yellow", "Green", "Purple", "Orange" };
-    List<string> backgroundColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 0.2f), ChartColor.FromRgba(54, 162, 235, 0.2f), ChartColor.FromRgba(255, 206, 86, 0.2f), ChartColor.FromRgba(75, 192, 192, 0.2f), ChartColor.FromRgba(153, 102, 255, 0.2f), ChartColor.FromRgba(255, 159, 64, 0.2f) };
+    List<string> backgroundColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 0.6f), ChartColor.FromRgba(54, 162, 235, 1), ChartColor.FromRgba(255, 206, 86, 0.2f), ChartColor.FromRgba(75, 192, 192, 0.2f), ChartColor.FromRgba(153, 102, 255, 0.2f), ChartColor.FromRgba(255, 159, 64, 0.2f) };
     List<string> borderColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 1f), ChartColor.FromRgba(54, 162, 235, 1f), ChartColor.FromRgba(255, 206, 86, 1f), ChartColor.FromRgba(75, 192, 192, 1f), ChartColor.FromRgba(153, 102, 255, 1f), ChartColor.FromRgba(255, 159, 64, 1f) };
 
     public struct LiveDataPoint
@@ -35,6 +35,10 @@
 
     private object horizontalLineChartOptions = new
     {
+	    Chart = new
+	    {
+		    BackgroundColor = ChartColor.FromRgba(40, 40, 40, 0.8f), // Dark grey background color
+	    },
         Scales = new
         {
             Y = new
@@ -42,14 +46,21 @@
                 Title = new
                 {
                     Display = true,
-                    Text = "Frequency"
+                    Text = "Frequency",
+                    Color = "#ffffff" 
                 },
                 Min = -2.5,
                 Max = 2.5,
                 Ticks = new
                 {
                     StepSize = 0.5,
-                }
+                    Color = "#ffffff" 
+                },
+                Grid = new 
+                {
+					Color = "#ffffff",
+                    
+				}
             }
         },
         Interaction = new
@@ -147,6 +158,10 @@
     {
         horizontalLineChartOptions = new
         {
+	        Chart = new
+	        {
+		        BackgroundColor = ChartColor.FromRgba(40, 40, 40, 0.8f), // Dark grey background color
+	        },
             Scales = new
             {
                 Y = new
@@ -158,7 +173,6 @@
                     },
                     Min = -2.5,
                     Max = 2.5,
-                    Origin = 50,
                 }
             },
             Interaction = new
@@ -170,3 +184,4 @@
         await horizontalLineChart.Update();
     }
 }
+</div>
