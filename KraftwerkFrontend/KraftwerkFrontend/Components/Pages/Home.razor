@@ -1,4 +1,5 @@
 ﻿@page "/"
+@using ApexCharts
 @using Blazorise.Charts
 @using Blazorise.Charts.Streaming
 @using Microsoft.AspNetCore.SignalR.Client
@@ -8,7 +9,7 @@
 
 <div class="mainDiv">
     <h1>Kraftwerk Frontend!</h1>
-    <p>Welcome to the Kraftwerk frontend.</p>
+    <h2>Current Energy: @Energy</h2>
     <button @onclick="GetEnergyStart">Start</button>
 </div>
 
@@ -19,7 +20,6 @@
 </LineChart>
 
 @code {
-
     LineChart<LiveDataPoint> horizontalLineChart;
     Random random = new Random(DateTime.Now.Millisecond);
 
@@ -42,17 +42,19 @@
                 Title = new
                 {
                     Display = true,
-                    Text = "TFFFF"
+                    Text = "Frequency"
                 },
+                Min = -2.5,
+                Max = 2.5,
                 Ticks = new
                 {
-                    stepSize = 0.5,
+                    StepSize = 0.5,
                 }
             }
         },
         Interaction = new
         {
-            intersect = false
+            Intersect = false
         }
     };
 
@@ -78,12 +80,12 @@
     {
         return new LineChartDataset<LiveDataPoint>
         {
-            Data = new List<LiveDataPoint>(),
+            Data = new List<LiveDataPoint> { new LiveDataPoint { X = DateTime.Now, Y = 50 } },
             Label = "Dataset 1 (linear interpolation)",
             BackgroundColor = backgroundColors[0],
             BorderColor = backgroundColors[0],
-            Fill = true,
-            Tension = 0,
+            Fill = true, // Set fill to start from the baseline
+            Tension = (float?)0.4, // This creates a smoother curve
             PointRadius = 3,
             CubicInterpolationMode = "monotone",
         };
@@ -135,7 +137,7 @@
         data.Value = new LiveDataPoint
         {
             X = DateTime.Now,
-            Y = Energy / 10000 + 50
+            Y = (Energy / 10000) // Adjust the energy scaling factor as needed
         };
 
         return Task.CompletedTask;
@@ -143,10 +145,6 @@
 
     private async Task UpdateChartOptions()
     {
-        var range = 4; // Adjust this value to set how much above and below 50 you want the axis to be
-        var min = 50 - range;
-        var max = 50 + range;
-
         horizontalLineChartOptions = new
         {
             Scales = new
@@ -156,20 +154,16 @@
                     Title = new
                     {
                         Display = true,
-                        Text = "TFFFF"
+                        Text = "Frequency"
                     },
-                    Min = 49,
-                    Max = 51,
-                    Ticks = new
-                    {
-                        stepSize = 1,
-
-                    }
+                    Min = -2.5,
+                    Max = 2.5,
+                    Origin = 50,
                 }
             },
             Interaction = new
             {
-                intersect = false
+                Intersect = false
             }
         };
 

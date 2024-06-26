@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34728.123
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KraftwerkFrontend", "KraftwerkFrontend\KraftwerkFrontend.csproj", "{001006D6-BDC5-4A41-AA62-9AC4FF726498}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KraftwerkFrontend", "KraftwerkFrontend\KraftwerkFrontend.csproj", "{001006D6-BDC5-4A41-AA62-9AC4FF726498}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Powergrid", "..\KraftwerkWebservice\Powergrid\Powergrid.csproj", "{903556B0-2753-4D8E-9F8A-A4BC82009815}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Powergrid", "..\Powergrid\Powergrid.csproj", "{F43E3F13-119C-4FCB-8B98-52B9699A2746}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Producer", "..\KraftwerkWebservice\Producer\Producer.csproj", "{86FE3686-0A09-40D8-BB2A-C6938CF9F98B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Producer", "..\Producer\Producer.csproj", "{0D830102-7635-480E-A0E5-03C861729018}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LoggingService", "..\KraftwerkWebservice\LoggingService\LoggingService.csproj", "{BB9F5CE0-A11C-453F-B0D1-594AF650344A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LoggingService", "..\LoggingService\LoggingService.csproj", "{ED51CF57-5377-45BF-BA35-1E931A7525FB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,18 +21,18 @@ Global
 		{001006D6-BDC5-4A41-AA62-9AC4FF726498}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{001006D6-BDC5-4A41-AA62-9AC4FF726498}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{001006D6-BDC5-4A41-AA62-9AC4FF726498}.Release|Any CPU.Build.0 = Release|Any CPU
-		{903556B0-2753-4D8E-9F8A-A4BC82009815}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{903556B0-2753-4D8E-9F8A-A4BC82009815}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{903556B0-2753-4D8E-9F8A-A4BC82009815}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{903556B0-2753-4D8E-9F8A-A4BC82009815}.Release|Any CPU.Build.0 = Release|Any CPU
-		{86FE3686-0A09-40D8-BB2A-C6938CF9F98B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{86FE3686-0A09-40D8-BB2A-C6938CF9F98B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{86FE3686-0A09-40D8-BB2A-C6938CF9F98B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{86FE3686-0A09-40D8-BB2A-C6938CF9F98B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BB9F5CE0-A11C-453F-B0D1-594AF650344A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BB9F5CE0-A11C-453F-B0D1-594AF650344A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BB9F5CE0-A11C-453F-B0D1-594AF650344A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BB9F5CE0-A11C-453F-B0D1-594AF650344A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F43E3F13-119C-4FCB-8B98-52B9699A2746}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F43E3F13-119C-4FCB-8B98-52B9699A2746}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F43E3F13-119C-4FCB-8B98-52B9699A2746}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F43E3F13-119C-4FCB-8B98-52B9699A2746}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0D830102-7635-480E-A0E5-03C861729018}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D830102-7635-480E-A0E5-03C861729018}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D830102-7635-480E-A0E5-03C861729018}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D830102-7635-480E-A0E5-03C861729018}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED51CF57-5377-45BF-BA35-1E931A7525FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED51CF57-5377-45BF-BA35-1E931A7525FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED51CF57-5377-45BF-BA35-1E931A7525FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED51CF57-5377-45BF-BA35-1E931A7525FB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
