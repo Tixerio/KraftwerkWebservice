@@ -1,31 +1,117 @@
 ﻿@page "/"
-@using ApexCharts
+@using System.Runtime.InteropServices.JavaScript
 @using Blazorise.Charts
 @using Blazorise.Charts.Streaming
+@using Microsoft.AspNetCore.Http.Features
 @using Microsoft.AspNetCore.SignalR.Client
+@using Color = ApexCharts.Color
+@using Label = Blazorise.Label
 @rendermode InteractiveServer
-
-<PageTitle>Home</PageTitle>
-
-<div class="mainDiv">
-    <h1>Kraftwerk Frontend!</h1>
-    <h2>Current Energy: @Energy</h2>
-    <button @onclick="GetEnergyStart">Start</button>
+    @using Blazorise.Components
+@using Blazorise.Extensions
 
 
-<LineChart @ref="horizontalLineChart" TItem="LiveDataPoint" OptionsObject="@horizontalLineChartOptions">
-    <ChartStreaming TItem="LiveDataPoint"
-                    Options="new ChartStreamingOptions { Delay = 2000 }"
-                    Refreshed="@OnHorizontalLineRefreshed" />
-</LineChart>
+    <PageTitle>Home</PageTitle>
+    <div class="mainDiv">
+        <div class="wrapperTop">
+
+            <div class="headlineDiv">
+                <h1>Kraftwerk Frontend!</h1>
+                <h2>Current Power: @Energy</h2>
+                <div class="buttonDiv">
+                    <button @onclick="GetEnergyStart">Start</button>
+                    <button @onclick="Reset">Reset</button>
+                    <div class="dropdown">
+	                    <p>
+		                    <label class="dropdown">
+			                    Select your Member:
+			                    <select class="dropdown" @onchange="OnDropdownChange">
+				                    <option class="dropdown" value="">Select a value</option>
+				                    @foreach (var member in Members)
+				                    {
+					                    <option value="@member.Key">@member.Value</option>
+				                    }
+			                    </select>
+		                    </label>
+	                    </p>
+
+                    </div>
+                    <div class="inputField">
+	                    <Field>
+		                    <p class="inputHeadline">Amount @AmountText</p>
+		                    <NumericPicker Placeholder="0" @bind-Value="@AmountMultiplicator" />
+	                    </Field>
+                    </div>
+                    <button @onclick="ChangeConsumerAmount">Save</button>
+                </div>
+            </div>
+            <div class="placeholderDiv">
+            </div>
+        </div>
+        <div class="wrapperBottom">
+            <div class="labelsDiv">
+                <p class="topLabel">53</p>
+                <p class="middleLabel">51.5</p>
+                <p class="middleLabel">50</p>
+                <p class="middleLabel">48.5</p>
+                <p class="bottomLabel">47</p>
+            </div>
+            <div class="chartDiv">
+                <LineChart @ref="horizontalLineChart" TItem="LiveDataPoint" OptionsObject="@horizontalLineChartOptions">
+                    <ChartStreaming TItem="LiveDataPoint"
+                                    Options="new ChartStreamingOptions { Delay = 2000 }"
+                                    Refreshed="@OnHorizontalLineRefreshed" />
+                </LineChart>
+            </div>
+        </div>
+    </div>
 
 @code {
+
+
+    public int _amountMultiplicator;
+
+    public int AmountMultiplicator
+    {
+        get { return this._amountMultiplicator; }
+        set
+        {
+            this._amountMultiplicator = value;
+            MultiplicatorAmount[ActiveMember.Value.Key] = value;
+        }
+    }
+
+    public string AmountText { get; set; } = "for selection";
+
+    public KeyValuePair<string, string>? ActiveMember { get; set; }
+
+    public
     LineChart<LiveDataPoint> horizontalLineChart;
-    Random random = new Random(DateTime.Now.Millisecond);
+    public Dictionary<string, string> Members { get; set; } = new();
+    public Dictionary<string, int> MultiplicatorAmount { get; set; } = new();
+
+    private void OnDropdownChange(ChangeEventArgs e)
+    {
+        if ((e.Value is string dropdownValue) && !String.IsNullOrWhiteSpace(dropdownValue))
+        {
+            ActiveMember = Members.FirstOrDefault(x => x.Key == dropdownValue);
+            if (ActiveMember.Value.Value.Contains("Powerplant"))
+            {
+                AmountMultiplicator = MultiplicatorAmount.FirstOrDefault(x => x.Key == dropdownValue).Value;
+                AmountText = "Pulses";
+                return;
+            }
+            AmountMultiplicator = MultiplicatorAmount.FirstOrDefault(x => x.Key == dropdownValue).Value;
+            AmountText = "Consumers";
+        }
+        else
+        {
+            ActiveMember = null;
+        }
+    }
 
     string[] Labels = { "Red", "Blue", "Yellow", "Green", "Purple", "Orange" };
     List<string> backgroundColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 0.6f), ChartColor.FromRgba(54, 162, 235, 1), ChartColor.FromRgba(255, 206, 86, 0.2f), ChartColor.FromRgba(75, 192, 192, 0.2f), ChartColor.FromRgba(153, 102, 255, 0.2f), ChartColor.FromRgba(255, 159, 64, 0.2f) };
-    List<string> borderColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 1f), ChartColor.FromRgba(54, 162, 235, 1f), ChartColor.FromRgba(255, 206, 86, 1f), ChartColor.FromRgba(75, 192, 192, 1f), ChartColor.FromRgba(153, 102, 255, 1f), ChartColor.FromRgba(255, 159, 64, 1f) };
 
     public struct LiveDataPoint
     {
@@ -35,32 +121,46 @@
 
     private object horizontalLineChartOptions = new
     {
-	    Chart = new
-	    {
-		    BackgroundColor = ChartColor.FromRgba(40, 40, 40, 0.8f), // Dark grey background color
-	    },
+        ChartAxis = new ChartAxis()
+        {
+            BeginAtZero = false
+        },
+        ChartScales = new
+        {
+            Y = new
+            {
+                Color = "#ffffff",
+                Display = false
+            }
+        },
+
+        Chart = new
+        {
+            BackgroundColor = ChartColor.FromRgba(40, 40, 40, 0.8f)
+
+        },
         Scales = new
         {
             Y = new
             {
                 Title = new
                 {
-                    Display = true,
+                    Display = false,
                     Text = "Frequency",
-                    Color = "#ffffff" 
+
                 },
-                Min = -2.5,
-                Max = 2.5,
+                Min = -3,
+                Max = 3,
                 Ticks = new
                 {
-                    StepSize = 0.5,
-                    Color = "#ffffff" 
+                    StepSize = 1.5,
+                    Color = "#ffffff",
+                    Display = false
                 },
-                Grid = new 
+                Grid = new
                 {
-					Color = "#ffffff",
-                    
-				}
+                    Color = "#ffffff",
+                },
             }
         },
         Interaction = new
@@ -91,12 +191,12 @@
     {
         return new LineChartDataset<LiveDataPoint>
         {
-            Data = new List<LiveDataPoint> { new LiveDataPoint { X = DateTime.Now, Y = 50 } },
-            Label = "Dataset 1 (linear interpolation)",
+            Data = new List<LiveDataPoint> { new LiveDataPoint { X = DateTime.Now, } },
+            Label = "Frequenzabweichung",
             BackgroundColor = backgroundColors[0],
             BorderColor = backgroundColors[0],
-            Fill = true, // Set fill to start from the baseline
-            Tension = (float?)0.4, // This creates a smoother curve
+            Fill = true,
+            Tension = (float?)0.4,
             PointRadius = 3,
             CubicInterpolationMode = "monotone",
         };
@@ -112,22 +212,48 @@
             .Build();
 
         await hub.StartAsync();
+        await hub.SendAsync("GetMemberDataR");
 
         hub.On<string>("ReceiveMessage", async (message) =>
         {
             if (double.TryParse(message, out var newEnergy))
             {
-                Console.WriteLine(newEnergy);
                 Energy = newEnergy;
-                await InvokeAsync(UpdateChartOptions);
-                await horizontalLineChart.Update();
-                InvokeAsync(StateHasChanged);
+                await InvokeAsync(StateHasChanged);
             }
         });
+        hub.On<Dictionary<string, string>>("ReceiveMembers", async (message) =>
+        {
+            Members = message;
+            foreach (var member in Members)
+            {
+                if (member.Value.Contains("Consumer"))
+                {
+                    MultiplicatorAmount.Add(member.Key, 500);
+                    continue;
+                }
+                MultiplicatorAmount.Add(member.Key, 5);
+            }
+            Console.WriteLine(message.Count());
+            await InvokeAsync(StateHasChanged);
+
+        });
+
+        hub.On<Dictionary<string, int>>("ReceiveMemberData", async (message) =>
+        {
+            MultiplicatorAmount = message;
+            if(message != null) await InvokeAsync(StateHasChanged);
+        });
+    }
+
+    public async Task ChangeConsumerAmount()
+    {
+        await hub.SendAsync("ChangeMultiplicatorAmountR", ActiveMember.Value.Key, AmountMultiplicator);
     }
 
     private async Task GetEnergyStart()
     {
+        await hub.SendAsync("GetMemberDataR");
         while (true)
         {
             try
@@ -139,8 +265,22 @@
                 Console.WriteLine(e);
             }
 
+            if (Energy / 10000 + 50 <= 47.5 || Energy / 10000 + 50 >= 52.5)
+            {
+                await Reset();
+            }
+
+            await UpdateChartOptions();
+            await InvokeAsync(StateHasChanged);
+
             await Task.Delay(2000);
         }
+    }
+
+    private async Task Reset()
+    {
+        await hub.SendAsync("ResetEnergy");
+        Energy = 0;
     }
 
     Task OnHorizontalLineRefreshed(ChartStreamingData<LiveDataPoint> data)
@@ -148,7 +288,7 @@
         data.Value = new LiveDataPoint
         {
             X = DateTime.Now,
-            Y = (Energy / 10000) // Adjust the energy scaling factor as needed
+            Y = (Energy / 10000)
         };
 
         return Task.CompletedTask;
@@ -156,23 +296,34 @@
 
     private async Task UpdateChartOptions()
     {
+
         horizontalLineChartOptions = new
         {
-	        Chart = new
-	        {
-		        BackgroundColor = ChartColor.FromRgba(40, 40, 40, 0.8f), // Dark grey background color
-	        },
-            Scales = new
+            ChartAxisTicks = new ChartAxisTicks()
+            {
+                Callback = (value, index, values) => (value + 50).ToString()
+            },
+            ChartScales = new
             {
                 Y = new
                 {
+                    Color = "#3B3B3B",
+                }
+            },
+
+            Scales = new
+            {
+
+                Y = new
+                {
+
                     Title = new
                     {
                         Display = true,
+                        Color = "#3B3B3B",
                         Text = "Frequency"
                     },
-                    Min = -2.5,
-                    Max = 2.5,
+
                 }
             },
             Interaction = new
@@ -184,4 +335,3 @@
         await horizontalLineChart.Update();
     }
 }
-</div>

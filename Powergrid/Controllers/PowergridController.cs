@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Powergrid.PowerGrid;
 
-using static Powergrid.PowerGrid.Consumer;
-
 
 namespace Powergrid2.Controllers
 {
@@ -64,12 +62,6 @@ namespace Powergrid2.Controllers
                     break;
                 case "Consumer":
                     grid.Members.Add(ID, new Consumer(request.Name));
-                    break;
-                case "Household":
-                    grid.Members.Add(ID, new Household(request.Name));
-                    break;
-                case "HouseholdPV":
-                    grid.Members.Add(ID, new HouseholdPV(request.Name));
                     break;
             }
             return Ok(ID);

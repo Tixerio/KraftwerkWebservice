@@ -48,7 +48,6 @@ public class PowerPlant : BackgroundService
     {
         await ProduceEnergy(stoppingToken);
     }
-
 }
 
 public interface IPowergrid
@@ -60,7 +59,6 @@ public interface IPowergrid
     public void ChangeEnergyR();
     public void RegisterR();
     public String getID();
-
 }
 
 public class Powergrid : IPowergrid
@@ -79,8 +77,6 @@ public class Powergrid : IPowergrid
 
     private bool started = false;
     public IOptionsMonitor<ApplicationOptions> Options { get; set; }
-
-
 
     public Powergrid(HttpClient httpClient, ILogger<Powergrid> logger, IOptionsMonitor<ApplicationOptions> options)
     {
@@ -101,7 +97,6 @@ public class Powergrid : IPowergrid
     {
         if (started == false)
         {
-            
             started = true;
         }
     }
@@ -128,26 +123,7 @@ public class Powergrid : IPowergrid
                 }
             });
     }
-
-   
-    /*public async Task ChangeEnergy(CancellationToken ct)
-    {
-        if (this.ID == null)
-        {
-            return;
-        }
-        var result = await httpClient.PostAsync("ChangeEnergy", JsonContent.Create(this.ID), ct);
-        String registered = await result.Content.ReadAsStringAsync(ct);
-        if (registered != "Registered")
-        {
-            Pulses = 1;
-            _logger.LogInformation(registered + "\nPress any button to register...");
-            Console.ReadKey(true);
-            await Register(ct);
-        }
-        result.EnsureSuccessStatusCode();
-    }*/
-
+    
     public Task PulseChange(CancellationToken ct)
     {
         throw new NotImplementedException();
@@ -176,25 +152,25 @@ public class Powergrid : IPowergrid
 
 public class ApplicationOptions
 {
-    public const string Key = "HubCon"; // Defines the key for the options section
+    public const string Key = "HubCon";
 
     [Required(ErrorMessage = "Address Required")]
-    public string HubAddress { get; set; } // Stores the HubAddress with a validation attribute
+    public string HubAddress { get; set; }
 }
 
-// ApplicationOptionsSetup class
 public class ApplicationOptionsSetup : IConfigureOptions<ApplicationOptions>
 {
-    private const string SectionName = "HubCon"; // Ensures this matches the JSON section name
+    private const string SectionName = "HubCon"; 
     private readonly IConfiguration _configuration;
 
     public ApplicationOptionsSetup(IConfiguration configuration)
     {
-        _configuration = configuration; // Injects the configuration
+        _configuration = configuration; 
     }
 
     public void Configure(ApplicationOptions options)
     {
-        _configuration.GetSection(SectionName).Bind(options); // Binds the configuration section to the ApplicationOptions instance
+        _configuration.GetSection(SectionName).Bind(options);
+
     }
 }

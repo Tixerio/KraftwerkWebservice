@@ -1,7 +1,6 @@
 ﻿using Powergrid2.Controllers;
 using Console = System.Console;
 
-namespace Powergrid.PowerGrid;
 using Powergrid2.Utilities;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNet.SignalR.Messaging;
@@ -10,8 +9,9 @@ using Microsoft.AspNet.SignalR.Messaging;
 public interface IPowergridHubClient
 {
     Task ReceiveMessage(string message);
+    Task ReceiveMembers(Dictionary<string, string> message);
+    Task ReceiveMemberData(Dictionary<string, int> data);
 }
-
 
 public class PowergridHub : Hub<IPowergridHubClient>
 {
@@ -20,11 +20,6 @@ public class PowergridHub : Hub<IPowergridHubClient>
     public PowergridHub(Grid grid)
     {
         this.grid = grid;
-    }
-
-    public async Task BroadcastMessage()
-    {
-        Clients.All.ReceiveMessage("Not registered");
     }
 
     public async Task ChangeEnergyR(string? ID)
@@ -37,6 +32,24 @@ public class PowergridHub : Hub<IPowergridHubClient>
         grid.ChangeEnergy(ID);
     }
 
+    public async Task ChangeMultiplicatorAmountR(string id, int request)
+    {
+        Console.WriteLine(request);
+        grid.MultiplicatorAmount[id] = request;
+    }
+
+    public async Task GetMemberDataR()
+    {
+        Dictionary<string, string> transformedMembers = new();
+        foreach (var (key, value) in grid.Members)
+        {
+            transformedMembers.Add(key, $"{value.Name}({value.GetType()})");
+        }
+
+        await Clients.All.ReceiveMembers(transformedMembers);
+        await Clients.Caller.ReceiveMemberData(grid.MultiplicatorAmount);
+    }
+
     public async Task RegisterR(PowergridController.MemberObject request)
     {
         var ID = Guid.NewGuid().ToString();
@@ -44,18 +57,22 @@ public class PowergridHub : Hub<IPowergridHubClient>
         {
             case "Powerplant":
                 grid.Members.Add(ID, new Powerplant(request.Name));
+                grid.MultiplicatorAmount.Add(ID, 5);
                 break;
             case "Consumer":
                 grid.Members.Add(ID, new Consumer(request.Name));
+                grid.MultiplicatorAmount.Add(ID, 500);
                 break;
-            case "Household":
-                grid.Members.Add(ID, new Household(request.Name));
-                break;
-            case "HouseholdPV":
-                grid.Members.Add(ID, new HouseholdPV(request.Name));
-                break;
+       
         }
         Console.WriteLine("Registered");
+        Dictionary<string, string> transformedMembers = new();
+        foreach (var (key, value) in grid.Members)
+        {
+            transformedMembers.Add(key, $"{value.Name}({value.GetType()})");
+        }
+
+        await Clients.All.ReceiveMembers(transformedMembers);
         await Clients.Caller.ReceiveMessage(ID);
     }
 
@@ -72,9 +89,8 @@ public class PowergridHub : Hub<IPowergridHubClient>
 
     public override async Task OnConnectedAsync()
     {
+        Console.WriteLine("connected");
         await base.OnConnectedAsync();
-        // Example: send a welcome message to all clients when a new client connects
-        
     }
 
     public override async Task OnDisconnectedAsync(Exception? exception)
@@ -82,8 +98,6 @@ public class PowergridHub : Hub<IPowergridHubClient>
         await base.OnDisconnectedAsync(exception);
     }
 }
-
-
 
 public interface IMember
 {
@@ -108,6 +122,7 @@ public class GridRequester : BackgroundService, IGridRequester
     {
         
     }
+
     public async Task GetIsConsuming()
     {
         var result = await httpClient.GetAsync("ChangeIsConnected");
@@ -122,8 +137,10 @@ public class Grid
     public bool Started { get; set; } = false;
 
     public Dictionary<int, double> Plan { get; set; } = new();
-    public Dictionary<String, IMember> Members { get; set; } = new();
+    public Dictionary<string, IMember> Members { get; set; } = new();
     public Environment Env { get; set; } = new(1, 1);
+    public Dictionary<string, int> PulseCounter { get; set; } = new();
+    public Dictionary<string, int> MultiplicatorAmount { get; set; } = new();
 
     public Grid(ILogger<Grid> logger, IGridRequester requester)
     {
@@ -143,17 +160,10 @@ public class Grid
         {
             Consumer consumer = (Consumer)member;
             consumer.Hour = Env.GetTimeInTimeSpan().Hours;
+            AvailableEnergy += member.Energy * MultiplicatorAmount.FirstOrDefault(x => x.Key == ID).Value;
+            return;
         }
-        else if (member.GetType() == typeof(Powerplant))
-        {
-            if (member.GetType() == typeof(Photovoltaic))
-            {
-                Photovoltaic consumer = (Photovoltaic)member;
-                consumer.Sunintensity = Env.SunIntensity;
-            }
-        }
-        
-        AvailableEnergy += member.Energy;
+        AvailableEnergy += member.Energy * MultiplicatorAmount.FirstOrDefault(x => x.Key == ID).Value;
     }
 
     private void InitPlan()
@@ -205,109 +215,7 @@ public class Grid
     }
 }
 
-public class Powerplant : IMember
-{
-    public double Energy { get;  } = 500;
-    public string Name { get; set;  }
 
-    public Powerplant(string name)
-    {
-        this.Name = name;
-    }
-}
-
-public class Photovoltaic : Powerplant
-{
-    public double Sunintensity { get; set; } = 0;
-    private double energy;
-
-    public virtual double Energy
-    {
-        get
-        {
-            Console.WriteLine(this.energy * Sunintensity/10);
-            return this.energy * Sunintensity / 10;
-        }
-        set
-        {
-            this.energy = value;
-        }
-    }
-
-    public Photovoltaic(string name) : base(name)
-    {
-    }
-
-}
-
-public class Consumer : IMember
-{
-    public readonly double[] consumePercentDuringDayNight =
-    [
-        0.125, 0.1875, 0.25, 0.1875, 0.375, 0.5, 0.75, 0.875, 0.8125, 0.875, 1, 1, 0.625, 0.6875, 0.5, 0.375, 0.375, 0.75, 0.5,
-        0.5, 0.625, 0.3125, 0.1875, 0.1875
-    ];
-
-    public int Hour { get; set; } = 0;
-    public double energy;
-
-    public virtual double Energy
-    {
-        get
-        {
-            Console.WriteLine(this.energy * consumePercentDuringDayNight[Hour]);
-            return this.energy * consumePercentDuringDayNight[Hour];
-        }
-        set
-        {
-            this.energy = value;
-        }
-    }
-
-    public string Name { get; set; }
-
-    public Consumer(string name)
-    {
-        this.Energy = -1000;
-        this.Name = name;
-    }
-
-    
-}
-
-public class Household : Consumer
-{
-    public Household(string name) : base(name)
-    {
-    }
-}
-
-public class HouseholdPV : Consumer
-{
-    public override double Energy
-    {
-        get
-        {
-            Console.WriteLine(this.energy * consumePercentDuringDayNight[Hour] + " PV: " + RandomPVValue());
-            return this.energy * consumePercentDuringDayNight[Hour] + RandomPVValue();
-        }
-
-        set
-        {
-            this.energy = value;
-        }
-    }
-
-    public HouseholdPV(string name) : base(name)
-    {
-    }
-
-    private double RandomPVValue()
-    {
-        return new Random().Next(0, 1000);
-    }
-
-}
 
 
 

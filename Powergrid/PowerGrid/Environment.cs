@@ -1,5 +1,5 @@
 ﻿
-namespace Powergrid2.Utilities;
+using Powergrid2.Utilities;
 
 public class Environment
 {

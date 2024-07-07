@@ -1,7 +1,76 @@
-﻿div {
+﻿#wrapperTop {
+	background-color: #3B3B3B;
+	width: 100%;
+	border: 1px solid black;
+	display: flex;
+	height: 20%;
+}
+
+#wrapperBottom {
+	background-color: #3B3B3B;
+	width: 100%;
+	border: 1px solid black;
+	display: flex;
+	height: 80%;
+}
+
+.labelsDiv {
+	background-color: #3B3B3B;
+	text-align: right;
+	float: left;
+	width: 5%;
+	height: 100vh;
+	left: 5em;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-around;
+	gap: 15vh
+}
+
+.chartDiv {
+	background-color: #3B3B3B;
+	justify-content: space-around;
+	text-align: center;
+	height: 100vh;
+	width: 95%;
+	float: right;
+}
+
+.headlineDiv {
 	background-color: #3B3B3B;
 	text-align: center;
-	width: 100%
+	width: 95%;
+	height: 20%;
+	float: right;
+}
+
+.placeholderDiv {
+	width: 5%;
+	height: 210px;
+	background-color: #3B3B3B;
+	float: left;
+}
+
+.buttonDiv {
+	display: flex;
+	width: 100%;
+	text-align: center;
+	justify-content: center;
+	align-items: center;
+}
+
+.inputHeadline {
+	color: white
+}
+
+.dropwdown {
+	right: 20px;
+	background-color: blue;
+	color: blue;
+}
+
+.inputField {
+	padding-left: 20px
 }
 
 h1 {
@@ -10,24 +79,32 @@ h1 {
 }
 
 p {
-	color: white
+	color: white;
 }
 
 h2 {
-	color: white
+	color: white;
 }
 
 button {
 	border-radius: 10px;
 	background-color: dodgerblue;
 	margin: 30px;
-	padding: 10;
-	padding-left: 20px;
-	padding-right: 20px;
-	padding-top: 10px;
-	padding-bottom: 10px;
-	bottom: 20px;
+	padding: 10px 20px;
 	font-size: 20px;
 	font-weight: 600;
-	color: white
+	color: white;
+}
+
+.topLabel, .middleLabel, .bottomLabel {
+	margin-right: 10%;
+	color: white;
+}
+
+.middleLabel {
+	margin-top: 0;
+}
+
+.bottomLabel {
+	margin-bottom: 10vh;
 }
