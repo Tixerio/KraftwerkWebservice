@@ -4,6 +4,7 @@ using Console = System.Console;
 using Powergrid2.Utilities;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNet.SignalR.Messaging;
+using Newtonsoft.Json;
 
 
 public interface IPowergridHubClient
@@ -11,6 +12,8 @@ public interface IPowergridHubClient
     Task ReceiveMessage(string message);
     Task ReceiveMembers(Dictionary<string, string> message);
     Task ReceiveMemberData(Dictionary<string, int> data);
+    Task ReceiveTime(int hours);
+    Task ReceiveStop(bool stopped);
 }
 
 public class PowergridHub : Hub<IPowergridHubClient>
@@ -20,7 +23,7 @@ public class PowergridHub : Hub<IPowergridHubClient>
     public PowergridHub(Grid grid)
     {
         this.grid = grid;
-    }
+    }      
 
     public async Task ChangeEnergyR(string? ID)
     {
@@ -32,10 +35,23 @@ public class PowergridHub : Hub<IPowergridHubClient>
         grid.ChangeEnergy(ID);
     }
 
+    public async Task StartStop()
+    {
+        grid.Stopped = grid.Stopped == false ? true : false;
+        Console.WriteLine(grid.Stopped);
+        await Clients.Caller.ReceiveStop(grid.Stopped);
+    }
+
     public async Task ChangeMultiplicatorAmountR(string id, int request)
     {
         Console.WriteLine(request);
         grid.MultiplicatorAmount[id] = request;
+    }
+
+    public async Task GetCurrentTimeR()
+    {
+        await grid.Env.DayCycle();
+        await Clients.Caller.ReceiveTime(grid.Env.GetTimeInTimeSpan().Hours);
     }
 
     public async Task GetMemberDataR()
@@ -80,10 +96,11 @@ public class PowergridHub : Hub<IPowergridHubClient>
     {
         await Clients.Caller.ReceiveMessage(grid.AvailableEnergy.ToString());
     }
-
+    
     public async Task ResetEnergy()
     {
         grid.Members.Clear();
+        grid.Stopped = true;
         grid.AvailableEnergy = 0;
     }
 
@@ -134,7 +151,6 @@ public class Grid
 {
     private IGridRequester requester;
     private readonly ILogger<Grid> _logger;
-    public bool Started { get; set; } = false;
 
     public Dictionary<int, double> Plan { get; set; } = new();
     public Dictionary<string, IMember> Members { get; set; } = new();
@@ -142,80 +158,67 @@ public class Grid
     public Dictionary<string, int> PulseCounter { get; set; } = new();
     public Dictionary<string, int> MultiplicatorAmount { get; set; } = new();
 
+    public bool Stopped { get; set; } = false;
+
     public Grid(ILogger<Grid> logger, IGridRequester requester)
     {
         _logger = logger;
         this.requester = requester;
-        InitPlan();
     }
 
     public double AvailableEnergy { get; set; }
 
-
     public async void ChangeEnergy(String ID)
     {
-        
-        var member = Members.Where(x => x.Key == ID).Select(x => x.Value).FirstOrDefault();
-        if (member.GetType() == typeof(Consumer))
+        if (!Stopped)
         {
-            Consumer consumer = (Consumer)member;
-            consumer.Hour = Env.GetTimeInTimeSpan().Hours;
-            AvailableEnergy += member.Energy * MultiplicatorAmount.FirstOrDefault(x => x.Key == ID).Value;
-            return;
+            var member = Members.Where(x => x.Key == ID).Select(x => x.Value).FirstOrDefault();
+            if (member?.GetType() == typeof(Consumer))
+            {
+                var consumer = (Consumer)member;
+                consumer.Hour = Env.GetTimeInTimeSpan().Hours;
+                AvailableEnergy += member.Energy * MultiplicatorAmount.FirstOrDefault(x => x.Key == ID).Value;
+                return;
+            }
+            AvailableEnergy += member!.Energy * MultiplicatorAmount.FirstOrDefault(x => x.Key == ID).Value;
         }
-        AvailableEnergy += member.Energy * MultiplicatorAmount.FirstOrDefault(x => x.Key == ID).Value;
     }
 
     private void InitPlan()
     {
         for (int i = 0; i < 24; i++)
         {
-            Plan[i] = new Random().Next(40000, 60000);
+            Plan.Add(i,0);
+            foreach (var consumer in Members.Where(x => x.Value.GetType() == typeof(Consumer)))
+            {
+                Plan[i] += consumer.Value.Energy * MultiplicatorAmount.FirstOrDefault(x => x.Key == consumer.Key).Value;
+                Env.IncrementTime();
+                ((Consumer)consumer.Value).Hour = Env.GetTimeInTimeSpan().Hours;
+            }
         }
+    
     }
 
-    private double GetPossibleProduction()
+    public Dictionary<int, double> GetExpectedConsume()
     {
-        double possibleProduction = 0;
-        foreach (var (key, value) in Members.Where(x => (Type)x.Value == typeof(Powerplant)))
-        {
-            possibleProduction += value.Energy;
-        }
 
-        return possibleProduction;
+        if (!Plan.Any())
+        {
+            InitPlan();
+        }
+        return (Plan);
     }
 
-    public Dictionary<int, double> GetIndividualPlan(String ID)
-    {
-        var energy = Members.Where(x => x.Key == ID).Select(x => x.Value).FirstOrDefault()!.Energy;
-        var possibleProduction = GetPossibleProduction();
-        Dictionary<int, double> indPlan = new();
 
-        for (int i = 0; i < 24; i++)
-        {
-            indPlan[i] = energy / possibleProduction * Plan[i];
-            Console.WriteLine($"{energy} {possibleProduction} {Plan[i]}");
-            Console.WriteLine(indPlan[i]);
-        }
-
-        return indPlan;
-    }
 
     public async Task Start()
     {
         Console.WriteLine("Started");
         AvailableEnergy = 0;
-        Started = true;
     }
 
     public async Task Blackout()
     {
         Members.Clear();
-        Started = false;
     }
 }
-
-
-
-
-

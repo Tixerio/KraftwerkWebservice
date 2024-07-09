@@ -19,9 +19,8 @@ namespace Powergrid2.Controllers
         public IActionResult ChangeEnergy([FromBody] String request)
         {
             
-            if (grid.Members.ContainsKey(request) && grid.Started == true)
+            if (grid.Members.ContainsKey(request) && grid.Stopped == false)
             {
-                //Console.WriteLine("Received Request from " + grid.Members[request].Name);
                 grid.ChangeEnergy(request);
                 return Ok("Registered");
             }
@@ -30,7 +29,7 @@ namespace Powergrid2.Controllers
                 return Ok("Unregistered.");
             }
 
-            if(!grid.Started)
+            if(grid.Stopped)
             {
                 return Ok("Not started yet.");
             }
@@ -38,10 +37,10 @@ namespace Powergrid2.Controllers
             return Ok();
         }
 
-        [HttpPost("GetIndividualPlan")]
-        public IActionResult ConsumeEnergy([FromBody] String request)
+        [HttpGet("GetExpectedConsume")]
+        public IActionResult GetExpectedConsume()
         {
-            return Ok(grid.GetIndividualPlan(request));
+            return Ok(grid.GetExpectedConsume());
         }
 
         [HttpGet("GetEnergy")]
@@ -59,11 +58,14 @@ namespace Powergrid2.Controllers
             {
                 case "Powerplant":
                     grid.Members.Add(ID, new Powerplant(request.Name));
+                    grid.MultiplicatorAmount.Add(ID, 5);
                     break;
                 case "Consumer":
                     grid.Members.Add(ID, new Consumer(request.Name));
+                    grid.MultiplicatorAmount.Add(ID, 500);
                     break;
             }
+            Console.WriteLine("Registered");
             return Ok(ID);
         }
 
@@ -85,7 +87,7 @@ namespace Powergrid2.Controllers
         public IActionResult Start()
         {
             grid.Start();
-            Task.Run(async () => grid.Env.DayCycle());
+            //Task.Run(async () => grid.Env.DayCycle());
             return Ok();
         }
 

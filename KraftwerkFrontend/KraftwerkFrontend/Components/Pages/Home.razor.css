@@ -1,5 +1,23 @@
-﻿#wrapperTop {
+﻿.mainDiv {
+	align-content: center;
+	text-align: center;
+	justify-content: center;
+	display: flex;
+	align-items: center;
+	height: 100vh; 
+	position: relative; 
+}
+
+
+.appDiv {
+	position: relative;
 	background-color: #3B3B3B;
+	width: 100%;
+	z-index: 0;
+}
+
+#wrapperTop {
+	background-color: #CA4646;
 	width: 100%;
 	border: 1px solid black;
 	display: flex;
@@ -12,6 +30,19 @@
 	border: 1px solid black;
 	display: flex;
 	height: 80%;
+}
+
+
+.wrapperAlert {
+	width: 40%;
+	height: 30%;
+	text-align: center;
+	position: absolute;
+	z-index: 1;
+	background-color: #B82828;
+	opacity: 0.95;
+	border-radius: 20px;
+
 }
 
 .labelsDiv {
@@ -44,6 +75,7 @@
 	float: right;
 }
 
+
 .placeholderDiv {
 	width: 5%;
 	height: 210px;
@@ -63,6 +95,14 @@
 	color: white
 }
 
+.alertText {
+	font-size: 4vh;
+	font-style: normal;
+	color: black;
+	margin-top: 15%;
+	
+}
+
 .dropwdown {
 	right: 20px;
 	background-color: blue;
@@ -80,6 +120,11 @@ h1 {
 
 p {
 	color: white;
+}
+
+.counterMember {
+	margin-bottom: 4px;
+	font-size: 22px
 }
 
 h2 {

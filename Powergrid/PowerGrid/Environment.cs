@@ -29,7 +29,7 @@ public class Environment
         set
         {
             timePassed += value;
-            Time = DateTime.UnixEpoch.AddMinutes(timePassed);
+            Time = DateTime.UnixEpoch.AddHours(timePassed);
             day = Time.Day;
         }
     }
@@ -39,7 +39,7 @@ public class Environment
 
     public void IncrementTime()
     {
-        TimePassed = MinutesPerTick;
+        TimePassed = 1;
       
     }
 

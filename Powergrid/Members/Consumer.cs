@@ -13,8 +13,7 @@
     {
         get
         {
-            Console.WriteLine(this.energy * consumePercentDuringDayNight[Hour]);
-            return this.energy * consumePercentDuringDayNight[Hour];
+            return this.energy * consumePercentDuringDayNight[Hour] * new Random().Next(9, 11)/10;
         }
         set
         {
@@ -29,6 +28,4 @@
         this.Energy = -15;
         this.Name = name;
     }
-
-
 }

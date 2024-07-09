@@ -7,42 +7,53 @@
 @using Color = ApexCharts.Color
 @using Label = Blazorise.Label
 @rendermode InteractiveServer
-    @using Blazorise.Components
+@using Blazorise.Components
 @using Blazorise.Extensions
 
 
-    <PageTitle>Home</PageTitle>
-    <div class="mainDiv">
-        <div class="wrapperTop">
+<PageTitle>Home</PageTitle>
+<div class="mainDiv">
+    @if(visible)
+    {
+        <div class="wrapperAlert">
+            <p class="alertText">🗲 Blackout 🗲</p>
+            <button @onclick="SetBlackoutAlert">Ok</button>
+        </div>
+    }
 
+    <div class="appDiv">
+        <div class="wrapperTop">
             <div class="headlineDiv">
                 <h1>Kraftwerk Frontend!</h1>
                 <h2>Current Power: @Energy</h2>
                 <div class="buttonDiv">
-                    <button @onclick="GetEnergyStart">Start</button>
+                    <button @onclick="GetEnergyStart">@(StartStopButton == false ? "Stop" : "Start")</button>
                     <button @onclick="Reset">Reset</button>
                     <div class="dropdown">
-	                    <p>
-		                    <label class="dropdown">
-			                    Select your Member:
-			                    <select class="dropdown" @onchange="OnDropdownChange">
-				                    <option class="dropdown" value="">Select a value</option>
-				                    @foreach (var member in Members)
-				                    {
-					                    <option value="@member.Key">@member.Value</option>
-				                    }
-			                    </select>
-		                    </label>
-	                    </p>
-
+                        <p>
+                            <label class="dropdown">
+                                Select your Member:
+                                <select class="dropdown" @onchange="OnDropdownChange">
+                                    <option class="dropdown" value="">Select a value</option>
+                                    @foreach (var member in Members)
+                                    {
+                                        <option value="@member.Key">@member.Value</option>
+                                    }
+                                </select>
+                            </label>
+                        </p>
                     </div>
                     <div class="inputField">
-	                    <Field>
-		                    <p class="inputHeadline">Amount @AmountText</p>
-		                    <NumericPicker Placeholder="0" @bind-Value="@AmountMultiplicator" />
-	                    </Field>
+                        <Field>
+                            <p class="inputHeadline">Amount @AmountText</p>
+                            <NumericPicker Placeholder="0" @bind-Value="@AmountMultiplicator" />
+                        </Field>
                     </div>
                     <button @onclick="ChangeConsumerAmount">Save</button>
+                    <div>
+                        <p class="counterMember">Producers: @Members.Where(x => x.Value.Contains("Powerplant")).Count()</p>
+                        <p class="counterMember">Consumers: @Members.Where(x => x.Value.Contains("Consumer")).Count()</p>
+                    </div>
                 </div>
             </div>
             <div class="placeholderDiv">
@@ -65,9 +76,11 @@
             </div>
         </div>
     </div>
+</div>
 
 @code {
 
+    public bool visible = false;
 
     public int _amountMultiplicator;
 
@@ -89,6 +102,21 @@
     LineChart<LiveDataPoint> horizontalLineChart;
     public Dictionary<string, string> Members { get; set; } = new();
     public Dictionary<string, int> MultiplicatorAmount { get; set; } = new();
+
+    public void SetBlackoutAlert()
+    {
+	    if (visible)
+	    {
+		    visible = false;
+		    return;
+	    }
+
+	    visible = true;
+    }
+
+    public bool StartStopButton { get; set; } = true;
+
+
 
     private void OnDropdownChange(ChangeEventArgs e)
     {
@@ -121,15 +149,15 @@
 
     private object horizontalLineChartOptions = new
     {
-        ChartAxis = new ChartAxis()
-        {
-            BeginAtZero = false
-        },
         ChartScales = new
         {
             Y = new
             {
                 Color = "#ffffff",
+                Display = false
+            },
+            X = new 
+            {
                 Display = false
             }
         },
@@ -155,17 +183,25 @@
                 {
                     StepSize = 1.5,
                     Color = "#ffffff",
-                    Display = false
+                    Display = false,
                 },
                 Grid = new
                 {
                     Color = "#ffffff",
                 },
+            },
+            X = new 
+            {
+                Ticks = new 
+                {
+                    Display = false,
+                    color = "#ffffff"
+                }
             }
         },
         Interaction = new
         {
-            Intersect = false
+            Intersect = true
         }
     };
 
@@ -192,7 +228,6 @@
         return new LineChartDataset<LiveDataPoint>
         {
             Data = new List<LiveDataPoint> { new LiveDataPoint { X = DateTime.Now, } },
-            Label = "Frequenzabweichung",
             BackgroundColor = backgroundColors[0],
             BorderColor = backgroundColors[0],
             Fill = true,
@@ -222,6 +257,10 @@
                 await InvokeAsync(StateHasChanged);
             }
         });
+        hub.On<bool>("ReceiveStop", async (message) =>
+        {
+	        StartStopButton = message;
+        });
         hub.On<Dictionary<string, string>>("ReceiveMembers", async (message) =>
         {
             Members = message;
@@ -242,7 +281,10 @@
         hub.On<Dictionary<string, int>>("ReceiveMemberData", async (message) =>
         {
             MultiplicatorAmount = message;
-            if(message != null) await InvokeAsync(StateHasChanged);
+            if (message != null)
+            {
+	            await InvokeAsync(StateHasChanged);
+            }
         });
     }
 
@@ -254,6 +296,8 @@
     private async Task GetEnergyStart()
     {
         await hub.SendAsync("GetMemberDataR");
+        await hub.SendAsync("StartStop");
+
         while (true)
         {
             try
@@ -265,9 +309,10 @@
                 Console.WriteLine(e);
             }
 
-            if (Energy / 10000 + 50 <= 47.5 || Energy / 10000 + 50 >= 52.5)
+            if (Energy / 10000 + 50 > 52.5 || Energy / 10000 + 50 < 47.5)
             {
-                await Reset();
+	            visible = true;
+	            await Reset();
             }
 
             await UpdateChartOptions();
@@ -324,7 +369,8 @@
                         Text = "Frequency"
                     },
 
-                }
+                },
+             
             },
             Interaction = new
             {
