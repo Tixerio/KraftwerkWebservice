@@ -7,6 +7,7 @@ public class Environment
     private int day;
     public int MinutesPerTick { get; set; }
     public SunCycle SunCycle { get; set; } = new SunCycle(24 * 60);
+    public bool DayCycleStarted = false;
 
     public Environment(int timePassed, int minutesPerTick)
     {
@@ -63,13 +64,9 @@ public class Environment
 
     public async Task DayCycle()
     {
-        while (true)
-        {
-            await Task.Delay(1000);
-          
-            UpdateSunAndWind();
-            TimePassed = 5;
-        }
+        await Task.Delay(1000);
+        UpdateSunAndWind();
+        TimePassed = 5;
     }
 
     public TimeSpan GetTimeInTimeSpan()

@@ -23,7 +23,11 @@ public class PowergridHub : Hub<IPowergridHubClient>
     public PowergridHub(Grid grid)
     {
         this.grid = grid;
-    }      
+    }
+
+    private int CurrentTime { get; set; } = 0;
+
+    private bool DayCycleStarted = false;
 
     public async Task ChangeEnergyR(string? ID)
     {
@@ -38,7 +42,6 @@ public class PowergridHub : Hub<IPowergridHubClient>
     public async Task StartStop()
     {
         grid.Stopped = grid.Stopped == false ? true : false;
-        Console.WriteLine(grid.Stopped);
         await Clients.Caller.ReceiveStop(grid.Stopped);
     }
 
@@ -50,9 +53,12 @@ public class PowergridHub : Hub<IPowergridHubClient>
 
     public async Task GetCurrentTimeR()
     {
-        await grid.Env.DayCycle();
-        await Clients.Caller.ReceiveTime(grid.Env.GetTimeInTimeSpan().Hours);
+        Console.WriteLine("Test " + grid.CurrentTime);
+        await grid.IncreaseTime();
+        await Clients.All.ReceiveTime(grid.CurrentTime);
     }
+
+   
 
     public async Task GetMemberDataR()
     {
@@ -156,6 +162,7 @@ public class Grid
     public Dictionary<string, int> PulseCounter { get; set; } = new();
     public Dictionary<string, int> MultiplicatorAmount { get; set; } = new();
 
+    public int CurrentTime { get; set; } = 0;
     public bool Stopped { get; set; } = false;
 
     public Grid(ILogger<Grid> logger, IGridRequester requester)
@@ -178,6 +185,15 @@ public class Grid
                 return;
             }
             AvailableEnergy += member!.Energy * MultiplicatorAmount.FirstOrDefault(x => x.Key == ID).Value;
+        }
+    }
+
+    public async Task IncreaseTime()
+    {
+        while (true)
+        {
+            CurrentTime++;
+            await Task.Delay(1000);
         }
     }
 

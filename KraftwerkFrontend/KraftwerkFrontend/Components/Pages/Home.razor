@@ -1,14 +1,8 @@
 ﻿@page "/"
-@using System.Runtime.InteropServices.JavaScript
 @using Blazorise.Charts
 @using Blazorise.Charts.Streaming
-@using Microsoft.AspNetCore.Http.Features
 @using Microsoft.AspNetCore.SignalR.Client
-@using Color = ApexCharts.Color
-@using Label = Blazorise.Label
 @rendermode InteractiveServer
-@using Blazorise.Components
-@using Blazorise.Extensions
 
 
 <PageTitle>Home</PageTitle>
@@ -115,8 +109,6 @@
 
     public bool Stopped { get; set; } = false;
 
-
-
     private void OnDropdownChange(ChangeEventArgs e)
     {
         if ((e.Value is string dropdownValue) && !String.IsNullOrWhiteSpace(dropdownValue))
@@ -194,6 +186,11 @@
         {
             Stopped = message;
         });
+        hub.On<int>("ReceiveTime", async (message) =>
+        {
+	        Console.WriteLine("Time " + message);
+        });
+
         hub.On<Dictionary<string, string>>("ReceiveMembers", async (message) =>
         {
             Members = message;
@@ -233,9 +230,11 @@
 
         while (true)
         {
+	        await hub.SendAsync("GetCurrentTimeR");
             try
             {
                 await hub.SendAsync("GetEnergyR");
+           
             }
             catch (Exception e)
             {
@@ -249,7 +248,8 @@
             }
 
             await UpdateChartOptions();
-            await InvokeAsync(StateHasChanged); await Task.Delay(2000);
+            await InvokeAsync(StateHasChanged); 
+            await Task.Delay(2000);
         }
     }
 

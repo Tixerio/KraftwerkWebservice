@@ -1,15 +1,10 @@
-﻿using Microsoft.AspNetCore.SignalR;
-using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Options;
 using System.ComponentModel.DataAnnotations;
-using System.Net.Http.Json;
 
 
 public class PowerPlant : BackgroundService
 {
-
     private readonly IPowergrid powergrid;
     private CancellationToken stoppingToken;
     private ILogger<PowerPlant> _logger;
@@ -22,23 +17,22 @@ public class PowerPlant : BackgroundService
         powergrid.StartClient();
     }
 
-
     public async Task ProduceEnergy(CancellationToken ct)
     {
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            if (powergrid.getID() == null)
+            if (powergrid.GetId() == null)
             {
                 Console.WriteLine("Not Registered, push any button to register");
                 Console.ReadKey(true);
-                powergrid.RegisterR();
-                while (powergrid.getID() == null)
+                powergrid.Register();
+                while (powergrid.GetId() == null)
                 {
                     await Task.Delay(1000, stoppingToken);
                 }
             }
-            powergrid.ChangeEnergyR();
+            powergrid.ChangeEnergy();
             _logger.LogInformation("Has produced");
             await Task.Delay(2000, stoppingToken);
         }
@@ -53,12 +47,10 @@ public class PowerPlant : BackgroundService
 public interface IPowergrid
 {
     //public Task ChangeEnergy(CancellationToken ct);
-    public Task PulseChange(CancellationToken ct);
-    public Task Register(CancellationToken ct);
     public void StartClient();
-    public void ChangeEnergyR();
-    public void RegisterR();
-    public String getID();
+    public void ChangeEnergy();
+    public void Register();
+    public String GetId();
 }
 
 public class Powergrid : IPowergrid
@@ -70,7 +62,7 @@ public class Powergrid : IPowergrid
 
     public String? ID { get; set; }
 
-    public String getID()
+    public String GetId()
     {
         return (this.ID);
     }
@@ -101,15 +93,15 @@ public class Powergrid : IPowergrid
         }
     }
 
-    public async void RegisterR()
+    public async void Register()
     {
         HubConnection hub = CreateHub();
-        await hub.SendAsync("RegisterR", new MemberObject("Fabi", "Powerplant"));
+        await hub.SendAsync("RegisterR", new MemberObject("Test", "Powerplant"));
         hub.On<string>("ReceiveMessage",
             message => this.ID = message);
     }
 
-    public async void ChangeEnergyR()
+    public async void ChangeEnergy()
     {
         HubConnection hub = CreateHub();
         await hub.SendAsync("ChangeEnergyR", this.ID);
@@ -124,19 +116,6 @@ public class Powergrid : IPowergrid
             });
     }
     
-    public Task PulseChange(CancellationToken ct)
-    {
-        throw new NotImplementedException();
-    }
-
-    public async Task Register(CancellationToken ct)
-    {
-        var member = new MemberObject("Kraftwerk", "Powerplant");
-
-        var result = await httpClient.PostAsync("Register", JsonContent.Create(member));
-        this.ID = await result.Content.ReadAsStringAsync(ct);
-    }
-
     public class MemberObject
     {
         public MemberObject(string name, string type)
