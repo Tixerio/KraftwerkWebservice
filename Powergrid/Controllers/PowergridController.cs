@@ -83,15 +83,6 @@ namespace Powergrid2.Controllers
             return Ok();
         }
 
-        [HttpGet("Start")]
-        public IActionResult Start()
-        {
-            grid.Start();
-            //Task.Run(async () => grid.Env.DayCycle());
-            return Ok();
-        }
-
-
         public class MemberObject
         {
             public String Name { get; set; }

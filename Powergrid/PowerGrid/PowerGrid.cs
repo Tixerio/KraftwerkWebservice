@@ -100,7 +100,7 @@ public class PowergridHub : Hub<IPowergridHubClient>
     public async Task ResetEnergy()
     {
         grid.Members.Clear();
-        grid.Stopped = true;
+        grid.Stopped = false;
         grid.AvailableEnergy = 0;
     }
 
@@ -124,7 +124,6 @@ public interface IMember
 
 public interface IGridRequester
 {
-    public Task GetIsConsuming();
 }
 
 public class GridRequester : BackgroundService, IGridRequester
@@ -149,7 +148,6 @@ public class GridRequester : BackgroundService, IGridRequester
 
 public class Grid
 {
-    private IGridRequester requester;
     private readonly ILogger<Grid> _logger;
 
     public Dictionary<int, double> Plan { get; set; } = new();
@@ -163,7 +161,6 @@ public class Grid
     public Grid(ILogger<Grid> logger, IGridRequester requester)
     {
         _logger = logger;
-        this.requester = requester;
     }
 
     public double AvailableEnergy { get; set; }
@@ -209,13 +206,6 @@ public class Grid
         return (Plan);
     }
 
-
-
-    public async Task Start()
-    {
-        Console.WriteLine("Started");
-        AvailableEnergy = 0;
-    }
 
     public async Task Blackout()
     {

@@ -2,12 +2,12 @@
 using Microsoft.Extensions.Options;
 using System.ComponentModel.DataAnnotations;
 
-public class Consumer : BackgroundService
+public class ConsumerBot : BackgroundService
 {
     private readonly IPowergrid powergrid;
     private CancellationToken stoppingToken;
-    private ILogger<Consumer> _logger;
-    public Consumer(IPowergrid powergrid, ILogger<Consumer> logger)
+    private ILogger<ConsumerBot> _logger;
+    public ConsumerBot(IPowergrid powergrid, ILogger<ConsumerBot> logger)
     {
         this.powergrid = powergrid;
         _logger = logger;
@@ -46,8 +46,6 @@ public class Consumer : BackgroundService
 
 public interface IPowergrid
 {
-    public Task PulseChange(CancellationToken ct);
-    public Task Register(CancellationToken ct);
     public void StartClient();
     public void ChangeEnergyR();
     public void RegisterR();
@@ -90,14 +88,13 @@ public class Powergrid : IPowergrid, IAsyncInitialization
     {
         if (started == false)
         {
-
             started = true;
         }
     }
 
     public async void RegisterR()
     {
-        await hub.SendAsync("RegisterR", new MemberObject("Fabi", "Consumer"));
+        await hub.SendAsync("RegisterR", new MemberObject("Household", "Consumer"));
         hub.On<string>("ReceiveMessage",
             message => this.ID = message);
     }
@@ -120,18 +117,6 @@ public class Powergrid : IPowergrid, IAsyncInitialization
     {
         hub.StartAsync();
         return Task.CompletedTask;
-    }
-
-    public Task PulseChange(CancellationToken ct)
-    {
-        throw new NotImplementedException();
-    }
-
-    public async Task Register(CancellationToken ct)
-    {
-        var member = new MemberObject("Haushalte", "Household");
-        var result = await httpClient.PostAsync("Register", JsonContent.Create(member));
-        this.ID = await result.Content.ReadAsStringAsync(ct);
     }
 
     public class MemberObject

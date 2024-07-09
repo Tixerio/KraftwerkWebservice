@@ -27,7 +27,7 @@
                 <h1>Kraftwerk Frontend!</h1>
                 <h2>Current Power: @Energy</h2>
                 <div class="buttonDiv">
-                    <button @onclick="GetEnergyStart">@(StartStopButton == false ? "Stop" : "Start")</button>
+                    <button @onclick="ChangeStartStop">@(Stopped == false ? "Stop" : "Start")</button>
                     <button @onclick="Reset">Reset</button>
                     <div class="dropdown">
                         <p>
@@ -104,16 +104,16 @@
 
     public void SetBlackoutAlert()
     {
-	    if (blackoutVisible)
-	    {
-		    blackoutVisible = false;
-		    return;
-	    }
+        if (blackoutVisible)
+        {
+            blackoutVisible = false;
+            return;
+        }
 
-	    blackoutVisible = true;
+        blackoutVisible = true;
     }
 
-    public bool StartStopButton { get; set; } = true;
+    public bool Stopped { get; set; } = false;
 
 
 
@@ -143,6 +143,7 @@
         {
             await Task.WhenAll(
                 HandleRedraw(horizontalLineChart, GetLineChartDataset1));
+            await GetEnergyStart();
         }
     }
 
@@ -191,7 +192,7 @@
         });
         hub.On<bool>("ReceiveStop", async (message) =>
         {
-	        StartStopButton = message;
+            Stopped = message;
         });
         hub.On<Dictionary<string, string>>("ReceiveMembers", async (message) =>
         {
@@ -213,10 +214,6 @@
         hub.On<Dictionary<string, int>>("ReceiveMemberData", async (message) =>
         {
             MultiplicatorDictionary = message;
-            if (message != null)
-            {
-	            await InvokeAsync(StateHasChanged);
-            }
         });
     }
 
@@ -225,10 +222,14 @@
         await hub.SendAsync("ChangeMultiplicatorAmountR", ActiveMember.Value.Key, CurrentMemberMultiplicator);
     }
 
+    private async Task ChangeStartStop()
+    {
+        await hub.SendAsync("StartStop");
+    }
+
     private async Task GetEnergyStart()
     {
         await hub.SendAsync("GetMemberDataR");
-        await hub.SendAsync("StartStop");
 
         while (true)
         {
@@ -243,14 +244,12 @@
 
             if (Energy / 10000 + 50 > 52.5 || Energy / 10000 + 50 < 47.5)
             {
-	            blackoutVisible = true;
-	            await Reset();
+                blackoutVisible = true;
+                await Reset();
             }
 
             await UpdateChartOptions();
-            await InvokeAsync(StateHasChanged);
-
-            await Task.Delay(2000);
+            await InvokeAsync(StateHasChanged); await Task.Delay(2000);
         }
     }
 
@@ -260,72 +259,72 @@
         Energy = 0;
     }
 
-    
+
     string[] Labels = { "Red", "Blue", "Yellow", "Green", "Purple", "Orange" };
     List<string> backgroundColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 0.6f), ChartColor.FromRgba(54, 162, 235, 1), ChartColor.FromRgba(255, 206, 86, 0.2f), ChartColor.FromRgba(75, 192, 192, 0.2f), ChartColor.FromRgba(153, 102, 255, 0.2f), ChartColor.FromRgba(255, 159, 64, 0.2f) };
 
     public struct LiveDataPoint
     {
-	    public object X { get; set; }
-	    public object Y { get; set; }
+        public object X { get; set; }
+        public object Y { get; set; }
     }
 
     private object horizontalLineChartOptions = new
     {
-	    ChartScales = new
-	    {
-		    Y = new
-		    {
-			    Color = "#ffffff",
-			    Display = false
-		    },
-		    X = new 
-		    {
-			    Display = false
-		    }
-	    },
+        ChartScales = new
+        {
+            Y = new
+            {
+                Color = "#ffffff",
+                Display = false
+            },
+            X = new
+            {
+                Display = false
+            }
+        },
 
-	    Chart = new
-	    {
-		    BackgroundColor = ChartColor.FromRgba(40, 40, 40, 0.8f)
+        Chart = new
+        {
+            BackgroundColor = ChartColor.FromRgba(40, 40, 40, 0.8f)
 
-	    },
-	    Scales = new
-	    {
-		    Y = new
-		    {
-			    Title = new
-			    {
-				    Display = false,
-				    Text = "Frequency",
+        },
+        Scales = new
+        {
+            Y = new
+            {
+                Title = new
+                {
+                    Display = false,
+                    Text = "Frequency",
 
-			    },
-			    Min = -3,
-			    Max = 3,
-			    Ticks = new
-			    {
-				    StepSize = 1.5,
-				    Color = "#ffffff",
-				    Display = false,
-			    },
-			    Grid = new
-			    {
-				    Color = "#ffffff",
-			    },
-		    },
-		    X = new 
-		    {
-			    Ticks = new 
-			    {
-				    Display = false,
-				    color = "#ffffff"
-			    }
-		    }
-	    },
-	    Interaction = new
-	    {
-		    Intersect = true
-	    }
+                },
+                Min = -3,
+                Max = 3,
+                Ticks = new
+                {
+                    StepSize = 1.5,
+                    Color = "#ffffff",
+                    Display = false,
+                },
+                Grid = new
+                {
+                    Color = "#ffffff",
+                },
+            },
+            X = new
+            {
+                Ticks = new
+                {
+                    Display = false,
+                    color = "#ffffff"
+                }
+            }
+        },
+        Interaction = new
+        {
+            Intersect = true
+        }
     };
 
     Task OnHorizontalLineRefreshed(ChartStreamingData<LiveDataPoint> data)
@@ -370,7 +369,7 @@
                     },
 
                 },
-             
+
             },
             Interaction = new
             {

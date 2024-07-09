@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 var builder = Host.CreateApplicationBuilder(args);
 
 // Add services to the container.
-builder.Services.AddHostedService<Consumer>();
+builder.Services.AddHostedService<ConsumerBot>();
 builder.Services.AddHttpClient<IPowergrid, Powergrid>(x => x.BaseAddress = new Uri("https://localhost:7272/Powergrid/"));
 builder.Services.AddLogging(
     builder =>
@@ -38,7 +38,7 @@ builder.Services.AddSingleton(sp =>
 });
 
 // Register MyProgram as a transient service
-builder.Services.AddTransient<Consumer>();
+builder.Services.AddTransient<ConsumerBot>();
 
 // Build the application.
 var app = builder.Build();
