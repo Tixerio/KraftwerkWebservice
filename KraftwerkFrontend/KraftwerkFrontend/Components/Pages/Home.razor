@@ -13,7 +13,7 @@
 
 <PageTitle>Home</PageTitle>
 <div class="mainDiv">
-    @if(visible)
+    @if(blackoutVisible)
     {
         <div class="wrapperAlert">
             <p class="alertText">🗲 Blackout 🗲</p>
@@ -46,7 +46,7 @@
                     <div class="inputField">
                         <Field>
                             <p class="inputHeadline">Amount @AmountText</p>
-                            <NumericPicker Placeholder="0" @bind-Value="@AmountMultiplicator" />
+                            <NumericPicker Placeholder="0" @bind-Value="@CurrentMemberMultiplicator"/>
                         </Field>
                     </div>
                     <button @onclick="ChangeConsumerAmount">Save</button>
@@ -79,18 +79,17 @@
 </div>
 
 @code {
+    public bool blackoutVisible = false;
 
-    public bool visible = false;
+    public int currentMemberMultiplicator;
 
-    public int _amountMultiplicator;
-
-    public int AmountMultiplicator
+    public int CurrentMemberMultiplicator
     {
-        get { return this._amountMultiplicator; }
+        get { return this.currentMemberMultiplicator; }
         set
         {
-            this._amountMultiplicator = value;
-            MultiplicatorAmount[ActiveMember.Value.Key] = value;
+            this.currentMemberMultiplicator = value;
+            MultiplicatorDictionary[ActiveMember.Value.Key] = value;
         }
     }
 
@@ -101,17 +100,17 @@
     public
     LineChart<LiveDataPoint> horizontalLineChart;
     public Dictionary<string, string> Members { get; set; } = new();
-    public Dictionary<string, int> MultiplicatorAmount { get; set; } = new();
+    public Dictionary<string, int> MultiplicatorDictionary { get; set; } = new();
 
     public void SetBlackoutAlert()
     {
-	    if (visible)
+	    if (blackoutVisible)
 	    {
-		    visible = false;
+		    blackoutVisible = false;
 		    return;
 	    }
 
-	    visible = true;
+	    blackoutVisible = true;
     }
 
     public bool StartStopButton { get; set; } = true;
@@ -125,11 +124,11 @@
             ActiveMember = Members.FirstOrDefault(x => x.Key == dropdownValue);
             if (ActiveMember.Value.Value.Contains("Powerplant"))
             {
-                AmountMultiplicator = MultiplicatorAmount.FirstOrDefault(x => x.Key == dropdownValue).Value;
+                CurrentMemberMultiplicator = MultiplicatorDictionary.FirstOrDefault(x => x.Key == dropdownValue).Value;
                 AmountText = "Pulses";
                 return;
             }
-            AmountMultiplicator = MultiplicatorAmount.FirstOrDefault(x => x.Key == dropdownValue).Value;
+            CurrentMemberMultiplicator = MultiplicatorDictionary.FirstOrDefault(x => x.Key == dropdownValue).Value;
             AmountText = "Consumers";
         }
         else
@@ -137,73 +136,6 @@
             ActiveMember = null;
         }
     }
-
-    string[] Labels = { "Red", "Blue", "Yellow", "Green", "Purple", "Orange" };
-    List<string> backgroundColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 0.6f), ChartColor.FromRgba(54, 162, 235, 1), ChartColor.FromRgba(255, 206, 86, 0.2f), ChartColor.FromRgba(75, 192, 192, 0.2f), ChartColor.FromRgba(153, 102, 255, 0.2f), ChartColor.FromRgba(255, 159, 64, 0.2f) };
-
-    public struct LiveDataPoint
-    {
-        public object X { get; set; }
-        public object Y { get; set; }
-    }
-
-    private object horizontalLineChartOptions = new
-    {
-        ChartScales = new
-        {
-            Y = new
-            {
-                Color = "#ffffff",
-                Display = false
-            },
-            X = new 
-            {
-                Display = false
-            }
-        },
-
-        Chart = new
-        {
-            BackgroundColor = ChartColor.FromRgba(40, 40, 40, 0.8f)
-
-        },
-        Scales = new
-        {
-            Y = new
-            {
-                Title = new
-                {
-                    Display = false,
-                    Text = "Frequency",
-
-                },
-                Min = -3,
-                Max = 3,
-                Ticks = new
-                {
-                    StepSize = 1.5,
-                    Color = "#ffffff",
-                    Display = false,
-                },
-                Grid = new
-                {
-                    Color = "#ffffff",
-                },
-            },
-            X = new 
-            {
-                Ticks = new 
-                {
-                    Display = false,
-                    color = "#ffffff"
-                }
-            }
-        },
-        Interaction = new
-        {
-            Intersect = true
-        }
-    };
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -268,10 +200,10 @@
             {
                 if (member.Value.Contains("Consumer"))
                 {
-                    MultiplicatorAmount.Add(member.Key, 500);
+                    MultiplicatorDictionary.Add(member.Key, 500);
                     continue;
                 }
-                MultiplicatorAmount.Add(member.Key, 5);
+                MultiplicatorDictionary.Add(member.Key, 5);
             }
             Console.WriteLine(message.Count());
             await InvokeAsync(StateHasChanged);
@@ -280,7 +212,7 @@
 
         hub.On<Dictionary<string, int>>("ReceiveMemberData", async (message) =>
         {
-            MultiplicatorAmount = message;
+            MultiplicatorDictionary = message;
             if (message != null)
             {
 	            await InvokeAsync(StateHasChanged);
@@ -290,7 +222,7 @@
 
     public async Task ChangeConsumerAmount()
     {
-        await hub.SendAsync("ChangeMultiplicatorAmountR", ActiveMember.Value.Key, AmountMultiplicator);
+        await hub.SendAsync("ChangeMultiplicatorAmountR", ActiveMember.Value.Key, CurrentMemberMultiplicator);
     }
 
     private async Task GetEnergyStart()
@@ -311,7 +243,7 @@
 
             if (Energy / 10000 + 50 > 52.5 || Energy / 10000 + 50 < 47.5)
             {
-	            visible = true;
+	            blackoutVisible = true;
 	            await Reset();
             }
 
@@ -327,6 +259,74 @@
         await hub.SendAsync("ResetEnergy");
         Energy = 0;
     }
+
+    
+    string[] Labels = { "Red", "Blue", "Yellow", "Green", "Purple", "Orange" };
+    List<string> backgroundColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 0.6f), ChartColor.FromRgba(54, 162, 235, 1), ChartColor.FromRgba(255, 206, 86, 0.2f), ChartColor.FromRgba(75, 192, 192, 0.2f), ChartColor.FromRgba(153, 102, 255, 0.2f), ChartColor.FromRgba(255, 159, 64, 0.2f) };
+
+    public struct LiveDataPoint
+    {
+	    public object X { get; set; }
+	    public object Y { get; set; }
+    }
+
+    private object horizontalLineChartOptions = new
+    {
+	    ChartScales = new
+	    {
+		    Y = new
+		    {
+			    Color = "#ffffff",
+			    Display = false
+		    },
+		    X = new 
+		    {
+			    Display = false
+		    }
+	    },
+
+	    Chart = new
+	    {
+		    BackgroundColor = ChartColor.FromRgba(40, 40, 40, 0.8f)
+
+	    },
+	    Scales = new
+	    {
+		    Y = new
+		    {
+			    Title = new
+			    {
+				    Display = false,
+				    Text = "Frequency",
+
+			    },
+			    Min = -3,
+			    Max = 3,
+			    Ticks = new
+			    {
+				    StepSize = 1.5,
+				    Color = "#ffffff",
+				    Display = false,
+			    },
+			    Grid = new
+			    {
+				    Color = "#ffffff",
+			    },
+		    },
+		    X = new 
+		    {
+			    Ticks = new 
+			    {
+				    Display = false,
+				    color = "#ffffff"
+			    }
+		    }
+	    },
+	    Interaction = new
+	    {
+		    Intersect = true
+	    }
+    };
 
     Task OnHorizontalLineRefreshed(ChartStreamingData<LiveDataPoint> data)
     {
