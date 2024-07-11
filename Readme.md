@@ -38,8 +38,6 @@
             }
         }
 
-       
-
 2. Setup Client
     -> Erstelle ein Hub Objekt:
 
@@ -53,7 +51,7 @@
 
 3. Kommunikation Client -> Server (Beispiel)
 
-    await hub.SendAsync("MethodenName", OptionaleDaten);
+        await hub.SendAsync("MethodenName", OptionaleDaten);
 
         //Der MethodenName ist gleich zu der im Server verwendeten Methode, z.B. wenn man "BroadcastMessage" verwendet, wird die Funktion mit selben Namen auf dem
         //Server aufgerufen, diese spezifische Methode schickt dann eine Nachricht an alle Clients
