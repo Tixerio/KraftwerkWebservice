@@ -1,10 +1,7 @@
 ﻿using Powergrid2.Controllers;
 using Console = System.Console;
-
-using Powergrid2.Utilities;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.AspNet.SignalR.Messaging;
-using Newtonsoft.Json;
+
 
 
 public interface IPowergridHubClient
@@ -25,10 +22,6 @@ public class PowergridHub : Hub<IPowergridHubClient>
         this.grid = grid;
     }
 
-    private int CurrentTime { get; set; } = 0;
-
-    private bool DayCycleStarted = false;
-
     public async Task ChangeEnergyR(string? ID)
     {
         if (ID != null && !grid.Members.ContainsKey(ID))
@@ -42,6 +35,11 @@ public class PowergridHub : Hub<IPowergridHubClient>
     public async Task StartStop()
     {
         grid.Stopped = grid.Stopped == false ? true : false;
+        if (!grid.Stopped)
+        {
+            await GetCurrentTimeR();
+        }
+
         await Clients.Caller.ReceiveStop(grid.Stopped);
     }
 
@@ -53,13 +51,9 @@ public class PowergridHub : Hub<IPowergridHubClient>
 
     public async Task GetCurrentTimeR()
     {
-        Console.WriteLine("Test " + grid.CurrentTime);
-        await grid.IncreaseTime();
-        await Clients.All.ReceiveTime(grid.CurrentTime);
+        grid.TimeLoop(Clients);
     }
-
-   
-
+    
     public async Task GetMemberDataR()
     {
         Dictionary<string, string> transformedMembers = new();
@@ -97,7 +91,7 @@ public class PowergridHub : Hub<IPowergridHubClient>
         await Clients.All.ReceiveMembers(transformedMembers);
         await Clients.Caller.ReceiveMessage(ID);
     }
-
+    
     public async Task GetEnergyR()
     {
         await Clients.Caller.ReceiveMessage(grid.AvailableEnergy.ToString());
@@ -107,6 +101,7 @@ public class PowergridHub : Hub<IPowergridHubClient>
     {
         grid.Members.Clear();
         grid.Stopped = false;
+        grid.TimeInInt = 0;
         grid.AvailableEnergy = 0;
     }
 
@@ -162,39 +157,73 @@ public class Grid
     public Dictionary<string, int> PulseCounter { get; set; } = new();
     public Dictionary<string, int> MultiplicatorAmount { get; set; } = new();
 
-    public int CurrentTime { get; set; } = 0;
+    public int TimeInInt { get; set; } = 0;
     public bool Stopped { get; set; } = false;
-
+    public bool ThreadStarted { get; set; } = false;
+    public double AvailableEnergy { get; set; }
+    
     public Grid(ILogger<Grid> logger, IGridRequester requester)
     {
         _logger = logger;
     }
 
-    public double AvailableEnergy { get; set; }
-
     public async void ChangeEnergy(String ID)
     {
+        Console.WriteLine("called");
         if (!Stopped)
         {
             var member = Members.Where(x => x.Key == ID).Select(x => x.Value).FirstOrDefault();
             if (member?.GetType() == typeof(Consumer))
             {
+                if (!Plan.Any())
+                {
+                    InitPlan();
+                }
                 var consumer = (Consumer)member;
-                consumer.Hour = Env.GetTimeInTimeSpan().Hours;
-                AvailableEnergy += member.Energy * MultiplicatorAmount.FirstOrDefault(x => x.Key == ID).Value;
+                consumer.Hour = Convert.ToInt32(Math.Floor((double)(TimeInInt / 60)));
+                AvailableEnergy += consumer.getCalculatedEnergy(Plan[consumer.Hour]);
                 return;
             }
             AvailableEnergy += member!.Energy * MultiplicatorAmount.FirstOrDefault(x => x.Key == ID).Value;
         }
     }
 
-    public async Task IncreaseTime()
+    public async void TimeLoop(IHubCallerClients<IPowergridHubClient> clients)
     {
-        while (true)
+        Thread threadTime = new Thread(async() =>
         {
-            CurrentTime++;
-            await Task.Delay(1000);
-        }
+            int currentMembers = Members.Count();
+            if (!ThreadStarted)
+            {
+                ThreadStarted = true;
+                while (!Stopped)
+                {
+                    await clients.All.ReceiveTime(TimeInInt);
+                    if (TimeInInt % 480 == 0)
+                    {
+                        Plan.Clear();
+                        TimeInInt = 0;
+                    }
+
+                    TimeInInt += 5;
+                    if (currentMembers != Members.Count())
+                    {
+                        currentMembers = Members.Count();
+                        Dictionary<string, string> transformedMembers = new();
+                        foreach (var (key, value) in Members)
+                        {
+                            transformedMembers.Add(key, $"{value.Name}({value.GetType()})");
+                        }
+
+                        await clients.All.ReceiveMembers(transformedMembers);
+                    }
+                    Thread.Sleep(1000);
+                }
+                ThreadStarted = false;
+            }
+        });
+
+        threadTime.Start();
     }
 
     private void InitPlan()
@@ -204,12 +233,11 @@ public class Grid
             Plan.Add(i,0);
             foreach (var consumer in Members.Where(x => x.Value.GetType() == typeof(Consumer)))
             {
-                Plan[i] += consumer.Value.Energy * MultiplicatorAmount.FirstOrDefault(x => x.Key == consumer.Key).Value;
+                Plan[i] += consumer.Value.Energy * MultiplicatorAmount.FirstOrDefault(x => x.Key == consumer.Key).Value * new Random().Next(9, 11) / 10;
                 Env.IncrementTime();
                 ((Consumer)consumer.Value).Hour = Env.GetTimeInTimeSpan().Hours;
             }
         }
-    
     }
 
     public Dictionary<int, double> GetExpectedConsume()
@@ -221,7 +249,6 @@ public class Grid
         }
         return (Plan);
     }
-
 
     public async Task Blackout()
     {

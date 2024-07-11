@@ -44,6 +44,10 @@
                         </Field>
                     </div>
                     <button @onclick="ChangeConsumerAmount">Save</button>
+                    <div class="timeDiv">
+	                    <p>Time</p>
+	                    <p class="timeText">@CurrentTime.AddMinutes(Time).TimeOfDay</p>
+                    </div>
                     <div>
                         <p class="counterMember">Producers: @Members.Where(x => x.Value.Contains("Powerplant")).Count()</p>
                         <p class="counterMember">Consumers: @Members.Where(x => x.Value.Contains("Consumer")).Count()</p>
@@ -76,6 +80,7 @@
     public bool blackoutVisible = false;
 
     public int currentMemberMultiplicator;
+
 
     public int CurrentMemberMultiplicator
     {
@@ -164,6 +169,9 @@
 
     HubConnection hub;
     public double Energy { get; set; } = 0;
+    public int Time { get; set; } = 0;
+    public DateTime CurrentTime = new DateTime();
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -188,7 +196,8 @@
         });
         hub.On<int>("ReceiveTime", async (message) =>
         {
-	        Console.WriteLine("Time " + message);
+	        Time = message;
+	        await InvokeAsync(StateHasChanged);
         });
 
         hub.On<Dictionary<string, string>>("ReceiveMembers", async (message) =>
@@ -227,14 +236,14 @@
     private async Task GetEnergyStart()
     {
         await hub.SendAsync("GetMemberDataR");
+        await hub.SendAsync("GetCurrentTimeR");
 
         while (true)
         {
-	        await hub.SendAsync("GetCurrentTimeR");
             try
             {
                 await hub.SendAsync("GetEnergyR");
-           
+
             }
             catch (Exception e)
             {
@@ -247,8 +256,9 @@
                 await Reset();
             }
 
+
             await UpdateChartOptions();
-            await InvokeAsync(StateHasChanged); 
+            await InvokeAsync(StateHasChanged);
             await Task.Delay(2000);
         }
     }

@@ -91,6 +91,16 @@
 	align-items: center;
 }
 
+.timeDiv {
+    border-color: dodgerblue;
+    border-width: 4px;
+    border-style: solid;
+    border-radius: 10px;
+    padding: 5px;
+    margin-right: 5px;
+    text-align: center;
+}
+
 .inputHeadline {
 	color: white
 }
@@ -111,6 +121,11 @@
 
 .inputField {
 	padding-left: 20px
+}
+
+.timeText {
+    margin-right: 20px;
+	font-size: 30px
 }
 
 h1 {

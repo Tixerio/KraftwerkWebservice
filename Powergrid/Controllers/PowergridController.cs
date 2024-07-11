@@ -18,7 +18,6 @@ namespace Powergrid2.Controllers
         [HttpPost("ChangeEnergy")]
         public IActionResult ChangeEnergy([FromBody] String request)
         {
-            
             if (grid.Members.ContainsKey(request) && grid.Stopped == false)
             {
                 grid.ChangeEnergy(request);
@@ -65,7 +64,10 @@ namespace Powergrid2.Controllers
                     grid.MultiplicatorAmount.Add(ID, 500);
                     break;
             }
+
+
             Console.WriteLine("Registered");
+          
             return Ok(ID);
         }
 

@@ -36,6 +36,8 @@ builder.Host.ConfigureLogging(logging =>
     logging.ClearProviders();
     logging.AddConsole();
 });
+
+
 builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR();
 

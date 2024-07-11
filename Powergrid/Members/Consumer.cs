@@ -13,7 +13,7 @@
     {
         get
         {
-            return this.energy * consumePercentDuringDayNight[Hour] * new Random().Next(9, 11)/10;
+            return this.energy;
         }
         set
         {
@@ -21,11 +21,17 @@
         }
     }
 
+    public double getCalculatedEnergy(double plannedEnergy)
+    {
+         return plannedEnergy * new Random().Next(9, 11) / 10;
+    }
+
+
     public string Name { get; set; }
 
     public Consumer(string name)
     {
-        this.Energy = -15;
+        this.Energy = -3;
         this.Name = name;
     }
 }
