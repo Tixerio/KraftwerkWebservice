@@ -16,9 +16,8 @@
 
     public double getCalculatedEnergy(double plannedEnergy)
     {
-         return plannedEnergy * new Random().Next(9, 11) / 10;
+         return plannedEnergy * new Random().Next(9, 11) / 10 * -1;
     }
-
 
     public string Name { get; set; }
 

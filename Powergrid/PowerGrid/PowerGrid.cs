@@ -175,6 +175,7 @@ public class Grid
                 return;
             }
             AvailableEnergy += member!.Energy * MultiplicatorAmount.FirstOrDefault(x => x.Key == ID).Value;
+            Console.WriteLine("AvailableEnergy " + AvailableEnergy);
         }
     }
 
@@ -189,7 +190,7 @@ public class Grid
                 while (!Stopped)
                 {
                     await clients.All.ReceiveTime(TimeInInt);
-                    if (TimeInInt % 480 == 0)
+                    if (TimeInInt % 1440 == 0)
                     {
                         Plan.Clear();
                         TimeInInt = 0;
@@ -223,7 +224,7 @@ public class Grid
             Plan.Add(i,0);
             foreach (var consumer in Members.Where(x => x.Value.GetType() == typeof(Consumer)))
             {
-                Plan[i] += consumer.Value.Energy * MultiplicatorAmount.FirstOrDefault(x => x.Key == consumer.Key).Value * new Random().Next(9, 11) / 10 * ((Consumer)consumer.Value).ConsumePercentDuringDayNight[i];
+                Plan[i] -= (consumer.Value.Energy * MultiplicatorAmount.FirstOrDefault(x => x.Key == consumer.Key).Value * new Random().Next(9, 11) / 10 * ((Consumer)consumer.Value).ConsumePercentDuringDayNight[i]);
                 ((Consumer)consumer.Value).Hour = i;
             }
         }

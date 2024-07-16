@@ -45,6 +45,14 @@ namespace Powergrid2.Controllers
             return grid.AvailableEnergy;
         }
 
+
+        [HttpGet("GetTime")]
+        public IActionResult GetTime()
+        {
+            return Ok(grid.TimeInInt/60);
+        }
+
+
         [HttpPost("Register")]
 
         public IActionResult Register([FromBody] MemberObject request)
