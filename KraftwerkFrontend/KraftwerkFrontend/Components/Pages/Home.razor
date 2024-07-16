@@ -49,8 +49,8 @@
 	                    <p class="timeText">@CurrentTime.AddMinutes(Time).TimeOfDay</p>
                     </div>
                     <div>
-                        <p class="counterMember">Producers: @Members.Where(x => x.Value.Contains("Powerplant")).Count()</p>
-                        <p class="counterMember">Consumers: @Members.Where(x => x.Value.Contains("Consumer")).Count()</p>
+                        <p class="counterMember">Producers: @Members.Count(x => x.Value.Contains("Powerplant"))</p>
+                        <p class="counterMember">Consumers: @Members.Count(x => x.Value.Contains("Consumer"))</p>
                     </div>
                 </div>
             </div>
@@ -265,7 +265,7 @@
 
     private async Task Reset()
     {
-        await hub.SendAsync("ResetEnergy");
+        await hub.SendAsync("ResetEnergyR");
         Energy = 0;
     }
 
