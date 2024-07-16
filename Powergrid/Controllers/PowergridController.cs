@@ -18,11 +18,7 @@ namespace Powergrid2.Controllers
         [HttpPost("ChangeEnergy")]
         public IActionResult ChangeEnergy([FromBody] String request)
         {
-            if (grid.Members.ContainsKey(request) && grid.Stopped == false)
-            {
-                grid.ChangeEnergy(request);
-                return Ok("Registered");
-            }
+         
             if(!grid.Members.ContainsKey(request))
             {
                 return Ok("Unregistered.");
@@ -33,7 +29,8 @@ namespace Powergrid2.Controllers
                 return Ok("Not started yet.");
             }
 
-            return Ok();
+            grid.ChangeEnergy(request);
+            return Ok("Registered");
         }
 
         [HttpGet("GetExpectedConsume")]
@@ -75,13 +72,6 @@ namespace Powergrid2.Controllers
         public IActionResult ForceBlackout()
         {
             grid.AvailableEnergy = -40000;
-            return Ok();
-        }
-
-        [HttpGet("BlackoutScenario")]
-        public IActionResult BlackoutScenario()
-        {
-            grid.Blackout();
             return Ok();
         }
 
