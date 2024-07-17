@@ -22,7 +22,7 @@
       "applicationUrl": "https://localhost:7171" 
     },
     "IIS Express": {
-      "commandName": "IISExpress",
+      "commandName": "IISExpress", //test
       "launchBrowser": true,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
