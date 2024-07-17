@@ -8,7 +8,6 @@ on:
 
 jobs:
   build:
-
     strategy:
       matrix:
         configuration: [Debug, Release]
@@ -38,12 +37,16 @@ jobs:
         Configuration: ${{ matrix.configuration }}
 
     - name: Create the single executable
-      run: dotnet publish ${{ env.Solution_Name }} -c ${{ matrix.configuration }} -r win-x64 --self-contained -p:PublishSingleFile=true -p:IncludeAllContentForSelfExtract=true
+      run: |
+        dotnet publish ${{ env.Solution_Name }} -c ${{ matrix.configuration }} -r win-x64 --self-contained -p:PublishSingleFile=true -p:IncludeAllContentForSelfExtract=true -o ./KraftwerkFrontend/bin/${{ matrix.configuration }}/net8.0/
       env:
         Configuration: ${{ matrix.configuration }}
+
+    - name: List published files
+      run: dir ./KraftwerkFrontend/bin/${{ matrix.configuration }}/net8.0/
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: Executable
-        path: './publish/KraftwerkFrontend.exe'  # Adjust the path if necessary
+        name: Executable-${{ matrix.configuration }}
+        path: ./KraftwerkFrontend/bin/${{ matrix.configuration }}/net8.0/KraftwerkFrontend.exe
