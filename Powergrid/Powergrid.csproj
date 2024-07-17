@@ -27,8 +27,4 @@
     </None>
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\LoggingService\LoggingService.csproj" />
-  </ItemGroup>
-
 </Project>
