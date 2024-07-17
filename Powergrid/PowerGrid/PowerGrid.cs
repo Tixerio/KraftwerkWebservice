@@ -170,7 +170,7 @@ public class Grid
                     InitPlan();
                 }
                 var consumer = (Consumer)member;
-                consumer.Hour = Convert.ToInt32(Math.Floor((double)(TimeInInt / 60)));
+                consumer.Hour = Convert.ToInt32(Math.Floor((double)(TimeInInt / 60 % 24)));
                 AvailableEnergy += consumer.getCalculatedEnergy(Plan[consumer.Hour]);
                 return;
             }
