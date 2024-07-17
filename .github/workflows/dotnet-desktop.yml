@@ -41,6 +41,9 @@ jobs:
       env:
         Configuration: ${{ matrix.configuration }}
 
+    - name: List published files
+      run: dir ./KraftwerkFrontend/bin/${{ matrix.configuration }}/net8.0/win-x64/publish
+
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
       with:
