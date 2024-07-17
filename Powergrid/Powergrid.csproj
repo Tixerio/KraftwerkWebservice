@@ -4,7 +4,6 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <BaseOutputPath>C:\Users\Fabian.Praxmarer\source\repos\KraftwerkWebservice\Executables</BaseOutputPath>
 	<TargetFramework>net8.0</TargetFramework>
 	<GenerateDocumentationFile>true</GenerateDocumentationFile>
 	<!-- Ensure XML documentation is generated -->
