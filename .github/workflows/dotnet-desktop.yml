@@ -44,5 +44,5 @@ jobs:
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: Executable
-        path: './KraftwerkFrontend/bin/${{ matrix.configuration }}/net8.0/win-x64/publish/KraftwerkFrontend.exe'  # Adjust the path if necessary
+        name: Executable-${{ matrix.configuration }}
+        path: ./KraftwerkFrontend/bin/${{ matrix.configuration }}/net8.0/win-x64/publish/KraftwerkFrontend.exe  # Adjust the path if necessary
