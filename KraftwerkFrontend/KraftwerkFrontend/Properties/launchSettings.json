@@ -13,13 +13,13 @@
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
-      "applicationUrl": "http://localhost:7171" // Change port to 7171
+      "applicationUrl": "http://localhost:5057" 
     },
     "https": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
-      "applicationUrl": "https://localhost:7171" // Change port to 7171
+      "applicationUrl": "https://localhost:7171" 
     },
     "IIS Express": {
       "commandName": "IISExpress",
