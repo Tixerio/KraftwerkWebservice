@@ -18,10 +18,9 @@ namespace Powergrid2.Controllers
         [HttpPost("ChangeEnergy")]
         public IActionResult ChangeEnergy([FromBody] String request)
         {
-         
             if(!grid.Members.ContainsKey(request))
             {
-                return Ok("Unregistered.");
+                return StatusCode(418);
             }
 
             if(grid.Stopped)
@@ -49,10 +48,9 @@ namespace Powergrid2.Controllers
         [HttpGet("GetTime")]
         public IActionResult GetTime()
         {
-            return Ok(grid.TimeInInt/60);
+            return Ok(grid.TimeInInt / 60);
         }
-
-
+        
         [HttpPost("Register")]
 
         public IActionResult Register([FromBody] MemberObject request)
@@ -70,13 +68,12 @@ namespace Powergrid2.Controllers
                     break;
             }
 
-
             Console.WriteLine("Registered");
-          
             return Ok(ID);
         }
 
         [HttpPost("ForceBlackout")]
+        [NonAction]
         public IActionResult ForceBlackout()
         {
             grid.AvailableEnergy = -40000;
@@ -87,7 +84,6 @@ namespace Powergrid2.Controllers
         {
             public String Name { get; set; }
             public String Type { get; set; }
-
         }
     }
 }

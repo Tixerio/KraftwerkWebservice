@@ -1,6 +1,7 @@
 ﻿using Powergrid2.Controllers;
 using Console = System.Console;
 using Microsoft.AspNetCore.SignalR;
+// ReSharper disable All
 
 public interface IPowergridHubClient
 {
@@ -79,8 +80,8 @@ public class PowergridHub : Hub<IPowergridHubClient>
                 grid.MultiplicatorAmount.Add(id, 500);
                 grid.InitPlanMember();
                 break;
-       
         }
+
         Console.WriteLine("Registered");
         Dictionary<string, string> transformedMembers = new();
         foreach (var (key, value) in grid.Members)
@@ -97,12 +98,13 @@ public class PowergridHub : Hub<IPowergridHubClient>
         await Clients.Caller.ReceiveMessage(grid.AvailableEnergy.ToString());
     }
     
-    public async Task ResetEnergyR()
+    public Task ResetEnergyR()
     {
         grid.Members.Clear();
         grid.Stopped = false;
         grid.TimeInInt = 0;
         grid.AvailableEnergy = 0;
+        return Task.CompletedTask;
     }
 
     public override async Task OnConnectedAsync()
@@ -119,22 +121,18 @@ public class PowergridHub : Hub<IPowergridHubClient>
 
 public interface IMember
 {
-    public string Name { get; set; }
+    public string Name { get; set; } 
     public double Energy { get; }
 }
-
-
 
 public class Grid
 {
     private readonly ILogger<Grid> _logger;
-
     public Dictionary<int, double> Plan_User { get; set; } = new();
     public Dictionary<int, double> Plan_Member { get; set; } = new();
     public Dictionary<string, IMember> Members { get; set; } = new();
     public Environment Env { get; set; } = new(1, 1);
     public Dictionary<string, int> MultiplicatorAmount { get; set; } = new();
-
     public int TimeInInt { get; set; } = 0;
     public bool Stopped { get; set; } = false;
     public bool ThreadStarted { get; set; } = false;
@@ -190,7 +188,7 @@ public class Grid
                     {
                         var UserProduction = new Dictionary<string, double>();
                         double OverallProduction = 0;
-                        foreach (var (key, value) in Members)
+                        foreach (var (key, value) in Members.Where(x => x.Value.GetType() == typeof(Powerplant)))
                         {
                             var powerplant = (Powerplant)value;
                             UserProduction.Add(key, powerplant.Produced);
@@ -212,24 +210,21 @@ public class Grid
 
                         await clients.All.ReceiveMembers(transformedMembersDic);
                     }
+
                     Thread.Sleep(1000);
                 }
+
                 ThreadStarted = false;
             }
         });
-
-
-
         threadTime.Start();
     }
 
-  
     public void InitPlanMember()
     {
         Plan_Member.Clear();
         for (int i = 0; i < 24; i++)
         {
-          
             Plan_Member.Add(i,0);
             foreach (var (key, value) in Members.Where(x => x.Value.GetType() == typeof(Consumer)))
             {
@@ -243,7 +238,6 @@ public class Grid
 
     public Dictionary<int, double> GetExpectedConsume()
     {
-
         if (!Plan_User.Any())
         {
             foreach (var (key, value) in Plan_Member)
@@ -251,8 +245,6 @@ public class Grid
                 Plan_User.Add(key, value);
             }
         }
-
         return Plan_User;
     }
 }
-
