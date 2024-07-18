@@ -45,6 +45,7 @@ public class PowergridHub : Hub<IPowergridHubClient>
     {
         Console.WriteLine(request);
         grid.MultiplicatorAmount[id] = request;
+
     }
 
     public async Task GetCurrentTimeR()
