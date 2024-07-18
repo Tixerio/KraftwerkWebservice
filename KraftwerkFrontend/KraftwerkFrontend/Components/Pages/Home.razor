@@ -7,34 +7,14 @@
 
 <PageTitle>Home</PageTitle>
 <div class="align-content-center text-center justify-content-center h-100 w-100">
-    @if(blackoutVisible)
-    {
-        <div class="wrapperAlert">
-            <p class="alertText">🗲 Blackout 🗲</p>
-            <button @onclick="SetBlackoutAlert">Ok</button>
-            
-        </div>
-    }
     <Modal @bind-Visible="blackoutVisible">
         <ModalContent Centered>
             <ModalHeader>
-                <ModalTitle>Employee edit</ModalTitle>
                 <CloseButton />
             </ModalHeader>
             <ModalBody>
-                <Field>
-                    <FieldLabel>Name</FieldLabel>
-                    <TextEdit Placeholder="Enter name..." />
-                </Field>
-                <Field>
-                    <FieldLabel>Surname</FieldLabel>
-                    <TextEdit Placeholder="Enter surname..." />
-                </Field>
+                <h4>🗲 Blackout 🗲</h4>
             </ModalBody>
-            <ModalFooter>
-                <Button Color="Color.Secondary" Clicked="@HideModal">Close</Button>
-                <Button Color="Color.Primary" Clicked="@HideModal">Save Changes</Button>
-            </ModalFooter>
         </ModalContent>
     </Modal>
     
@@ -173,7 +153,7 @@
 
     async Task HandleRedraw<TDataSet, TItem, TOptions, TModel>(BaseChart<TDataSet, TItem, TOptions, TModel> chart, params Func<TDataSet>[] getDataSets)
         where TDataSet : ChartDataset<TItem>
-        where TOptions : ChartOptions
+        where TOptions : Blazorise.Charts.ChartOptions
         where TModel : ChartModel
     {
         await chart.Clear();
@@ -239,7 +219,6 @@
                 }
                 MultiplicatorDictionary.Add(member.Key, 5);
             }
-            Console.WriteLine(message.Count());
             await InvokeAsync(StateHasChanged);
 
         });
@@ -300,19 +279,19 @@
         public object Y { get; set; }
     }
 
-    private object horizontalLineChartOptions = new
+    private object horizontalLineChartOptions = new Blazorise.Charts.ChartOptions()
     {
 
-        Chart = new
+        // Chart = new
+        // {
+        //     BackgroundColor = ChartColor.FromRgba(40, 40, 40, 0.8f)
+        //
+        // },
+        Scales = new ChartScales()
         {
-            BackgroundColor = ChartColor.FromRgba(40, 40, 40, 0.8f)
-
-        },
-        Scales = new
-        {
-            Y = new
+            Y = new ChartAxis()
             {
-                Title = new
+                Title = new ChartScaleTitle()
                 {
                     Display = false,
                     Text = "Frequency",
@@ -324,16 +303,26 @@
                 {
                     Callback = (value,index,values) => (value + 50).ToString()
                 },
-                Grid = new
+                Grid = new ChartAxisGridLine()
                 {
                     Color = "#ffffff",
                 },
             },
+            X = new ChartAxis()
+            {
+                Type  = "realtime",
+                Title = new ChartScaleTitle()
+                {
+                    Text = "Test"
+                },
+                Display = true,
+            },
         },
-        Interaction = new
-        {
-            Intersect = true
-        }
+        
+        // Interaction = new
+        // {
+        //     Intersect = true
+        // }
     };
 
     Task OnHorizontalLineRefreshed(ChartStreamingData<LiveDataPoint> data)

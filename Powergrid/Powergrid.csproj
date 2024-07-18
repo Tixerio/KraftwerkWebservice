@@ -25,6 +25,32 @@
     <None Update="appsettings.Development.json">
 	    <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </None>
+    <None Remove="SignalRServer\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="SignalRServer\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="SignalRServer\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="SignalRServer\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="SignalRServer\appsettings.Development.json" />
+    <_ContentIncludedByDefault Remove="SignalRServer\appsettings.json" />
+    <_ContentIncludedByDefault Remove="SignalRServer\Properties\launchSettings.json" />
+    <_ContentIncludedByDefault Remove="SignalRServer\Views\Home\Index.cshtml" />
+    <_ContentIncludedByDefault Remove="SignalRServer\Views\Home\Privacy.cshtml" />
+    <_ContentIncludedByDefault Remove="SignalRServer\Views\Shared\Error.cshtml" />
+    <_ContentIncludedByDefault Remove="SignalRServer\Views\Shared\_Layout.cshtml" />
+    <_ContentIncludedByDefault Remove="SignalRServer\Views\Shared\_ValidationScriptsPartial.cshtml" />
+    <_ContentIncludedByDefault Remove="SignalRServer\Views\_ViewImports.cshtml" />
+    <_ContentIncludedByDefault Remove="SignalRServer\Views\_ViewStart.cshtml" />
   </ItemGroup>
 
 </Project>
