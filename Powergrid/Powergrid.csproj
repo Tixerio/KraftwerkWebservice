@@ -4,7 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <BaseOutputPath>C:\Users\Fabian.Praxmarer\source\repos\KraftwerkWebservice\Executables</BaseOutputPath>
+    <BaseOutputPath>builds</BaseOutputPath>
 	<TargetFramework>net8.0</TargetFramework>
 	<GenerateDocumentationFile>true</GenerateDocumentationFile>
 	<!-- Ensure XML documentation is generated -->
@@ -25,10 +25,6 @@
     <None Update="appsettings.Development.json">
 	    <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\LoggingService\LoggingService.csproj" />
   </ItemGroup>
 
 </Project>

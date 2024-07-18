@@ -6,78 +6,110 @@
 
 
 <PageTitle>Home</PageTitle>
-<div class="mainDiv">
+<div class="align-content-center text-center justify-content-center h-100 w-100">
     @if(blackoutVisible)
     {
         <div class="wrapperAlert">
             <p class="alertText">🗲 Blackout 🗲</p>
             <button @onclick="SetBlackoutAlert">Ok</button>
+            
         </div>
     }
+    <Modal @bind-Visible="blackoutVisible">
+        <ModalContent Centered>
+            <ModalHeader>
+                <ModalTitle>Employee edit</ModalTitle>
+                <CloseButton />
+            </ModalHeader>
+            <ModalBody>
+                <Field>
+                    <FieldLabel>Name</FieldLabel>
+                    <TextEdit Placeholder="Enter name..." />
+                </Field>
+                <Field>
+                    <FieldLabel>Surname</FieldLabel>
+                    <TextEdit Placeholder="Enter surname..." />
+                </Field>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary" Clicked="@HideModal">Close</Button>
+                <Button Color="Color.Primary" Clicked="@HideModal">Save Changes</Button>
+            </ModalFooter>
+        </ModalContent>
+    </Modal>
     
 
-    <div class="appDiv">
-        <div class="wrapperTop">
-            <div class="headlineDiv">
-                <h1>Kraftwerk Frontend!</h1>
-                <h2>Current Power: @Energy</h2>
-                <div class="buttonDiv">
-                    <button @onclick="ChangeStartStop">@(Stopped == false ? "Stop" : "Start")</button>
-                    <button @onclick="Reset">Reset</button>
-                    <div class="dropdown">
-                        <p>
-                            <label class="dropdown">
-                                Select your Member:
-                                <select class="dropdown" @onchange="OnDropdownChange">
-                                    <option class="dropdown" value="">Select a value</option>
-                                    @foreach (var member in Members)
-                                    {
-                                        <option value="@member.Key">@member.Value</option>
-                                    }
-                                </select>
-                            </label>
-                        </p>
-                    </div>
-                    <div class="inputField">
-                        <Field>
-                            <p class="inputHeadline">Amount @AmountText</p>
-                            <NumericPicker Placeholder="0" @bind-Value="@CurrentMemberMultiplicator"/>
-                        </Field>
-                    </div>
-                    <button @onclick="ChangeConsumerAmount">Save</button>
-                    <div class="timeDiv">
-	                    <p>Time</p>
-	                    <p class="timeText">@CurrentTime.AddMinutes(Time).TimeOfDay</p>
-                    </div>
-                    <div>
-                        <p class="counterMember">Producers: @Members.Count(x => x.Value.Contains("Powerplant"))</p>
-                        <p class="counterMember">Consumers: @Members.Count(x => x.Value.Contains("Consumer"))</p>
-                    </div>
+    <div class="d-flex flex-column">
+        <div class="d-flex flex-row justify-content-center">
+            <div class="d-flex flex-row p-1 min-h-100">
+                <button class="btn btn-primary m-1" @onclick="ChangeStartStop">@(Stopped == false ? "Stop" : "Start")</button>
+                <button class="btn btn-primary m-1" @onclick="Reset">Reset</button>
+            </div>
+            <div class="align-self-center">
+                <select class="form-select" @onchange="OnDropdownChange">
+                    <option selected>Select vour Member: </option>
+                    @foreach (var member in Members.Where(x => x.Value.Contains("Consumer")))
+                    {
+                        <option value="@member.Key">@member.Value</option>
+                    }
+                </select>
+            </div>
+            <div class="align-self-center d-flex flex-row m-1">
+                <NumericPicker Placeholder=@AmountText @bind-Value="@CurrentMemberMultiplicator"/>
+                <button class="btn btn-primary ms-1" @onclick="ChangeConsumerAmount">Save</button>
+            </div>
+            
+            <div class="d-flex flex-row mx-auto p-1 align-items-center">
+                <svg fill="#ffffff" height="2rem" width="2rem" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+                     viewBox="0 0 360.627 360.627" xml:space="preserve">
+                    <g id="XMLID_931_">
+                        <g>
+                            <g>
+                                <path d="M259.652,112.643L259.652,112.643l-7.282,148.468l-55.115-33.255H143.93V94.475L54.401,16.036v43.47L0,17.837v340.869
+                                                    h124.06h19.871h103.653h10.8h73.076l-12.069-246.063H259.652z M123.93,338.706H20V306.4h63.388v-20H20v-36.444h63.388v-20H20
+                                                    v-36.444h63.388v-20H20v-36.444h63.388v-20H20V58.349l54.401,41.669V60.15l49.529,43.394V338.706z M248.565,338.705H144.06
+                                                    v-90.85h47.629l59.569,35.943L248.565,338.705z M268.588,338.706l10.107-206.063h21.653l10.107,206.063H268.588z"/>
+                                <path d="M349.321,13.246c-7.303-7.303-17.013-11.325-27.342-11.325c-10.328,0-20.038,4.022-27.342,11.325
+                                                    c-5.329,5.329-8.937,12.02-10.478,19.284c-2.638,1.494-5.078,3.344-7.223,5.488c-13.126,13.126-13.126,34.484,0,47.612
+                                                    c6.359,6.358,14.813,9.86,23.806,9.86c8.993,0,17.447-3.502,23.806-9.86c2.145-2.146,3.994-4.585,5.489-7.224
+                                                    c7.264-1.541,13.954-5.148,19.284-10.478C364.396,52.854,364.396,28.322,349.321,13.246z M335.179,53.787
+                                                    c-3.312,3.311-7.711,5.245-12.388,5.446l-6.912,0.298l-2.159,6.573c-0.671,2.045-1.787,3.856-3.314,5.384
+                                                    c-2.581,2.581-6.013,4.003-9.664,4.003c-3.65,0-7.083-1.422-9.664-4.002c-5.329-5.329-5.329-14,0-19.328
+                                                    c1.527-1.527,3.339-2.643,5.385-3.315l6.571-2.159l0.298-6.91c0.202-4.678,2.136-9.077,5.447-12.388
+                                                    c3.525-3.526,8.213-5.468,13.199-5.468c4.986,0,9.674,1.941,13.199,5.468C342.456,34.667,342.456,46.509,335.179,53.787z"/>
+                            </g>
+                        </g>
+                    </g>
+                </svg>
+                <h3 class="m-2 align-self-center me-4">: @Members.Count(x => x.Value.Contains("Powerplant"))
+                </h3>
+                <svg xmlns="http://www.w3.org/2000/svg" width="2.4rem" height="2.4rem" fill="#ffffff" viewBox="0 0 256 256"><path d="M240,208H224V136l2.34,2.34A8,8,0,0,0,237.66,127L139.31,28.68a16,16,0,0,0-22.62,0L18.34,127a8,8,0,0,0,11.32,11.31L32,136v72H16a8,8,0,0,0,0,16H240a8,8,0,0,0,0-16ZM48,120l80-80,80,80v88H160V152a8,8,0,0,0-8-8H104a8,8,0,0,0-8,8v56H48Zm96,88H112V160h32Z"></path></svg>
+                <h3 class="m-2 align-self-center">: @Members.Count(x => x.Value.Contains("Consumer"))
+                </h3>
+            </div>
+            <div class="ms-auto align-self-center me-2">
+                <h3 class="my-auto">@CurrentTime.AddMinutes(Time).TimeOfDay</h3>
+            </div>
+        </div>
+        <div class="p-3">
+            <div class="card">
+                <div class="card-body">
+                    <LineChart @ref="horizontalLineChart" TItem="LiveDataPoint" OptionsObject="@horizontalLineChartOptions">
+                        <ChartStreaming TItem="LiveDataPoint"
+                                        Options="new ChartStreamingOptions { Delay = 2000 }"
+                                        Refreshed="@OnHorizontalLineRefreshed" />
+                    </LineChart>
                 </div>
             </div>
-            <div class="placeholderDiv">
-            </div>
         </div>
-        <div class="wrapperBottom">
-            <div class="labelsDiv">
-                <p class="topLabel">53</p>
-                <p class="middleLabel">51.5</p>
-                <p class="middleLabel">50</p>
-                <p class="middleLabel">48.5</p>
-                <p class="bottomLabel">47</p>
-            </div>
-            <div class="chartDiv">
-                <LineChart @ref="horizontalLineChart" TItem="LiveDataPoint" OptionsObject="@horizontalLineChartOptions">
-                    <ChartStreaming TItem="LiveDataPoint"
-                                    Options="new ChartStreamingOptions { Delay = 2000 }"
-                                    Refreshed="@OnHorizontalLineRefreshed" />
-                </LineChart>
-            </div>
-        </div>
+        
     </div>
 </div>
 
 @code {
+    
+    private Modal modalRef;
+    
     public bool blackoutVisible = false;
 
     public int currentMemberMultiplicator;
@@ -93,7 +125,7 @@
         }
     }
 
-    public string AmountText { get; set; } = "for selection";
+    public string AmountText { get; set; } = "Amount for selection";
 
     public KeyValuePair<string, string>? ActiveMember { get; set; }
 
@@ -120,14 +152,8 @@
         if ((e.Value is string dropdownValue) && !String.IsNullOrWhiteSpace(dropdownValue))
         {
             ActiveMember = Members.FirstOrDefault(x => x.Key == dropdownValue);
-            if (ActiveMember.Value.Value.Contains("Powerplant"))
-            {
-                CurrentMemberMultiplicator = MultiplicatorDictionary.FirstOrDefault(x => x.Key == dropdownValue).Value;
-                AmountText = "Pulses";
-                return;
-            }
             CurrentMemberMultiplicator = MultiplicatorDictionary.FirstOrDefault(x => x.Key == dropdownValue).Value;
-            AmountText = "Consumers";
+            AmountText = "Amount for Consumers";
         }
         else
         {
@@ -151,14 +177,14 @@
         where TModel : ChartModel
     {
         await chart.Clear();
-        await chart.AddLabelsDatasetsAndUpdate(Labels, getDataSets.Select(x => x.Invoke()).ToArray());
+        await chart.AddLabelsDatasetsAndUpdate(new []{"Red"}, getDataSets.Select(x => x.Invoke()).ToArray());
     }
 
     LineChartDataset<LiveDataPoint> GetLineChartDataset1()
     {
         return new LineChartDataset<LiveDataPoint>
         {
-            Data = new List<LiveDataPoint> { new LiveDataPoint { X = DateTime.Now, } },
+            Data = new List<LiveDataPoint> { new LiveDataPoint {} },
             BackgroundColor = backgroundColors[0],
             BorderColor = backgroundColors[0],
             Fill = true,
@@ -256,9 +282,6 @@
                 blackoutVisible = true;
                 await Reset();
             }
-
-
-            await UpdateChartOptions();
             await InvokeAsync(StateHasChanged);
             await Task.Delay(2000);
         }
@@ -269,9 +292,6 @@
         await hub.SendAsync("ResetEnergyR");
         Energy = 0;
     }
-
-
-    string[] Labels = { "Red", "Blue", "Yellow", "Green", "Purple", "Orange" };
     List<string> backgroundColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 0.6f), ChartColor.FromRgba(54, 162, 235, 1), ChartColor.FromRgba(255, 206, 86, 0.2f), ChartColor.FromRgba(75, 192, 192, 0.2f), ChartColor.FromRgba(153, 102, 255, 0.2f), ChartColor.FromRgba(255, 159, 64, 0.2f) };
 
     public struct LiveDataPoint
@@ -282,18 +302,6 @@
 
     private object horizontalLineChartOptions = new
     {
-        ChartScales = new
-        {
-            Y = new
-            {
-                Color = "#ffffff",
-                Display = false
-            },
-            X = new
-            {
-                Display = false
-            }
-        },
 
         Chart = new
         {
@@ -312,25 +320,15 @@
                 },
                 Min = -3,
                 Max = 3,
-                Ticks = new
+                Ticks = new ChartAxisTicks()
                 {
-                    StepSize = 1.5,
-                    Color = "#ffffff",
-                    Display = false,
+                    Callback = (value,index,values) => (value + 50).ToString()
                 },
                 Grid = new
                 {
                     Color = "#ffffff",
                 },
             },
-            X = new
-            {
-                Ticks = new
-                {
-                    Display = false,
-                    color = "#ffffff"
-                }
-            }
         },
         Interaction = new
         {
@@ -349,45 +347,4 @@
         return Task.CompletedTask;
     }
 
-    private async Task UpdateChartOptions()
-    {
-
-        horizontalLineChartOptions = new
-        {
-            ChartAxisTicks = new ChartAxisTicks()
-            {
-                Callback = (value, index, values) => (value + 50).ToString()
-            },
-            ChartScales = new
-            {
-                Y = new
-                {
-                    Color = "#3B3B3B",
-                }
-            },
-
-            Scales = new
-            {
-
-                Y = new
-                {
-
-                    Title = new
-                    {
-                        Display = true,
-                        Color = "#3B3B3B",
-                        Text = "Frequency"
-                    },
-
-                },
-
-            },
-            Interaction = new
-            {
-                Intersect = false
-            }
-        };
-
-        await horizontalLineChart.Update();
-    }
 }
