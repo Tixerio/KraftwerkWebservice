@@ -1,0 +1,93 @@
+@page "/overview"
+@using Microsoft.AspNetCore.SignalR.Client
+@using Vizor.ECharts;
+@using Color = Vizor.ECharts.Color
+@using Tooltip = Vizor.ECharts.Tooltip
+@rendermode InteractiveServer
+
+
+<PageTitle>Overview</PageTitle>
+<div class="d-flex align-content-center text-center justify-content-center h-100 container">
+    <div class="row row-cols-2 h-100 w-100">
+        <div class="col"><Vizor.ECharts.EChart CssClass="h-100 w-100" @ref="chart" Options="@options"/></div>
+        <div class="col">Column</div>
+        <div class="col">Column</div>
+        <div class="col">Column</div>
+    </div>
+
+</div>
+
+
+@code {
+    HubConnection hub;
+    private Vizor.ECharts.EChart? chart;
+    private List<int> consumption = new List<int>();
+    public ChartOptions options = new()
+    {
+        YAxis = new YAxis()
+        {
+            Type = AxisType.Value
+                
+        },
+        XAxis = new XAxis()
+        {
+            Type = AxisType.Category
+        },
+        Tooltip = new Tooltip()
+        {
+            Trigger = Vizor.ECharts.TooltipTrigger.Item
+        },
+        Legend = new Legend()
+        {
+            Orient = Orient.Vertical,
+            Left = "left"
+        },
+        Series = new List<ISeries>()
+        {
+            new LineSeries()
+            {
+                Data = new List<LineSeriesData>()
+                {
+                    new() { Value = 1048},
+                    new() { Value = 735},
+                    new() { Value = 580},
+                    new() { Value = 484},
+                    new() { Value = 300},
+                },
+                Emphasis = new()
+                {
+                    ItemStyle = new()
+                    {
+                        ShadowBlur = 10,
+                        ShadowOffsetX = 0,
+                        ShadowColor = Color.FromRGBA(0, 0, 0, 0.5)
+                    }
+                }
+            }
+        }
+    };
+    protected override async Task OnInitializedAsync()
+    {
+        hub = new HubConnectionBuilder()
+            .WithUrl("https://localhost:7272/Powergrid")
+            .Build();
+        await hub.StartAsync();
+        await hub.SendAsync("GetExpectedConsume");
+        hub.On<Dictionary<string,int>>("ReceiveExpectedConsume", async (message) =>
+        {
+            (options.Series[0] as LineSeries).Data = new List<LineSeriesData>(message.Values.ToList().ConvertAll(x => new LineSeriesData() { Value= x}));
+            await InvokeAsync(StateHasChanged);
+        });
+        
+
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            StateHasChanged();
+            
+        }
+    }
+
+}
