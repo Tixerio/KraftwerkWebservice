@@ -7,10 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KraftwerkFrontend", "Kraftw
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Powergrid", "..\Powergrid\Powergrid.csproj", "{F43E3F13-119C-4FCB-8B98-52B9699A2746}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Producer", "..\Producer\Producer.csproj", "{0D830102-7635-480E-A0E5-03C861729018}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LoggingService", "..\LoggingService\LoggingService.csproj", "{ED51CF57-5377-45BF-BA35-1E931A7525FB}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsumerEndpoint", "..\ConsumerEndpoint\ConsumerEndpoint.csproj", "{6A803147-1799-4E5D-9A93-7E6676AFDF1F}"
 EndProject
 Global
@@ -27,14 +23,6 @@ Global
 		{F43E3F13-119C-4FCB-8B98-52B9699A2746}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F43E3F13-119C-4FCB-8B98-52B9699A2746}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F43E3F13-119C-4FCB-8B98-52B9699A2746}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0D830102-7635-480E-A0E5-03C861729018}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0D830102-7635-480E-A0E5-03C861729018}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0D830102-7635-480E-A0E5-03C861729018}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0D830102-7635-480E-A0E5-03C861729018}.Release|Any CPU.Build.0 = Release|Any CPU
-		{ED51CF57-5377-45BF-BA35-1E931A7525FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{ED51CF57-5377-45BF-BA35-1E931A7525FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{ED51CF57-5377-45BF-BA35-1E931A7525FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{ED51CF57-5377-45BF-BA35-1E931A7525FB}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6A803147-1799-4E5D-9A93-7E6676AFDF1F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6A803147-1799-4E5D-9A93-7E6676AFDF1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6A803147-1799-4E5D-9A93-7E6676AFDF1F}.Release|Any CPU.ActiveCfg = Release|Any CPU

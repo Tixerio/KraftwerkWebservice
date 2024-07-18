@@ -17,8 +17,6 @@
             </ModalBody>
         </ModalContent>
     </Modal>
-    
-
     <div class="d-flex flex-column">
         <div class="d-flex flex-row justify-content-center">
             <div class="d-flex flex-row p-1 min-h-100">
@@ -194,6 +192,7 @@
             if (double.TryParse(message, out var newEnergy))
             {
                 Energy = newEnergy;
+
                 await InvokeAsync(StateHasChanged);
             }
         });
@@ -281,12 +280,6 @@
 
     private object horizontalLineChartOptions = new Blazorise.Charts.ChartOptions()
     {
-
-        // Chart = new
-        // {
-        //     BackgroundColor = ChartColor.FromRgba(40, 40, 40, 0.8f)
-        //
-        // },
         Scales = new ChartScales()
         {
             Y = new ChartAxis()
