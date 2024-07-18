@@ -14,7 +14,6 @@
             <button @onclick="SetBlackoutAlert">Ok</button>
         </div>
     }
-    
 
     <div class="appDiv">
         <div class="wrapperTop">
@@ -188,6 +187,7 @@
             if (double.TryParse(message, out var newEnergy))
             {
                 Energy = newEnergy;
+
                 await InvokeAsync(StateHasChanged);
             }
         });
