@@ -13,7 +13,6 @@
         <div class="col">Column</div>
         <div class="col">Column</div>
         <div class="col">Column</div>
-        <button @onclick="TestFunction">Test</button>
     </div>
 
 </div>
@@ -67,6 +66,7 @@
             }
         }
     };
+
     protected override async Task OnInitializedAsync()
     {
         hub = new HubConnectionBuilder()
@@ -74,29 +74,25 @@
             .Build();
         await hub.StartAsync();
         await hub.SendAsync("GetExpectedConsume");
-        hub.On<Dictionary<int, double>>("ReceiveExpectedConsume", async (message) =>
+        hub.On<Dictionary< int, double>>("ReceiveExpectedConsume", async (message) =>
         {
-	        Console.WriteLine("Called in Frontend");
-
-            //(options.Series[0] as LineSeries).Data = new List<LineSeriesData>(message.Values.ToList().ConvertAll(x => new LineSeriesData() { Value= x}));
-            Console.WriteLine("test:" +  message.FirstOrDefault().Key + " " + message.FirstOrDefault().Value);
+            (options.Series[0] as LineSeries).Data = new List<LineSeriesData>(message.Values.ToList().ConvertAll(x => new LineSeriesData() { Value = x }));
             await InvokeAsync(StateHasChanged);
+            await chart.UpdateAsync();
         });
-        
+
 
     }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            StateHasChanged();
-            
+            if (chart == null)
+            {
+                return;
+            }
+
+            await chart.UpdateAsync();
         }
     }
-
-    public async void TestFunction()
-    {
-	    await hub.SendAsync("GetExpectedConsume");
-    }
-
 }

@@ -209,7 +209,7 @@ public class Grid
                     {
                         currentMembers = Members.Count();
                         Dictionary<string, string> transformedMembersDic = new();
-                        foreach (var (key, value) in Members)
+                        foreach (var (key, value) in Members.Where(x => x.Value.GetType() == typeof(Consumer)))
                         {
                             transformedMembersDic.Add(key, $"{value.Name}({value.GetType()})");
                         }
