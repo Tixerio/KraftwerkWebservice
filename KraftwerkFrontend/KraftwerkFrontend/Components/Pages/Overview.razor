@@ -2,6 +2,7 @@
 @using Microsoft.AspNetCore.SignalR.Client
 @using Vizor.ECharts;
 @using Color = Vizor.ECharts.Color
+@using Label = Vizor.ECharts.Label
 @using Tooltip = Vizor.ECharts.Tooltip
 @rendermode InteractiveServer
 
@@ -22,20 +23,44 @@
     HubConnection hub;
     private Vizor.ECharts.EChart? chart;
     private List<int> consumption = new List<int>();
-    public ChartOptions options = new()
+    private int Time { get; set; } = 0;
+    private ChartOptions options = new()
     {
         YAxis = new YAxis()
         {
-            Type = AxisType.Value
-                
+            Type = AxisType.Value,
+            
         },
         XAxis = new XAxis()
         {
-            Type = AxisType.Category
+            Max = 23,
+            AxisPointer = new AxisPointer()
+            {
+                Show = true,
+                Value  = 0.1,
+                Snap = false,
+                Label = new Label()
+                {
+                    Formatter = new StringOrFunction(new JavascriptFunction("function (value) { return `${String(Math.trunc(value.value)).padStart(2,'0')}:${String(Math.round(value.value*60%60)).padStart(2,'0')}`; }")),
+                },
+                LineStyle = new LineStyle()
+                {
+                    Color = "#ffffff",
+                    Width = 2,
+                },
+                Handle = new Handle()
+                {
+                    Show = true,
+                    Size = 0,
+                }
+                
+            },
+            Type = AxisType.Value,
+            
         },
         Tooltip = new Tooltip()
         {
-            Trigger = Vizor.ECharts.TooltipTrigger.Item
+            TriggerOn = TriggerOn.None
         },
         Legend = new Legend()
         {
@@ -46,13 +71,9 @@
         {
             new LineSeries()
             {
-                Data = new List<LineSeriesData>()
+                Data = new double[][]
                 {
-                    new() { Value = 1048},
-                    new() { Value = 735},
-                    new() { Value = 580},
-                    new() { Value = 484},
-                    new() { Value = 300},
+                    [1048.0,1.0],
                 },
                 Emphasis = new()
                 {
@@ -76,23 +97,32 @@
         await hub.SendAsync("GetExpectedConsume");
         hub.On<Dictionary< int, double>>("ReceiveExpectedConsume", async (message) =>
         {
-            (options.Series[0] as LineSeries).Data = new List<LineSeriesData>(message.Values.ToList().ConvertAll(x => new LineSeriesData() { Value = x }));
+            double[][] new_list = new double[24][];
+            List<double> values = message.Values.ToList();
+            for (int i = 0; i < message.Count(); i++)
+            {
+                new_list[i] = [i, values[i]];
+            };
+            (options.Series[0] as LineSeries).Data = new_list;
             await InvokeAsync(StateHasChanged);
-            await chart.UpdateAsync();
-        });
-
-
-    }
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
             if (chart == null)
             {
                 return;
             }
-
             await chart.UpdateAsync();
-        }
+        });
+        hub.On<int>("ReceiveTime", async (message) =>
+        {
+            Time = message;
+            options.XAxis.AxisPointer.Value = Time / 60.0 % 23.0;
+            await InvokeAsync(StateHasChanged);
+            if (chart == null)
+            {
+                return;
+            }
+            await chart.UpdateAsync();
+        });
+
+
     }
 }

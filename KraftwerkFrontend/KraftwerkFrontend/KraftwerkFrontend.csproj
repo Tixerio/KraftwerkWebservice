@@ -28,4 +28,40 @@
     <PackageReference Include="Vizor.ECharts.Net80" Version="0.10.5" />
   </ItemGroup>
 
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="builds\release\net8.0\publish\web.config" />
+    <_ContentIncludedByDefault Remove="builds\Debug\net8.0\appsettings.Development.json" />
+    <_ContentIncludedByDefault Remove="builds\Debug\net8.0\appsettings.json" />
+    <_ContentIncludedByDefault Remove="builds\Debug\net8.0\KraftwerkFrontend.deps.json" />
+    <_ContentIncludedByDefault Remove="builds\Debug\net8.0\KraftwerkFrontend.runtimeconfig.json" />
+    <_ContentIncludedByDefault Remove="builds\Debug\net8.0\KraftwerkFrontend.staticwebassets.runtime.json" />
+    <_ContentIncludedByDefault Remove="builds\release\net8.0\appsettings.Development.json" />
+    <_ContentIncludedByDefault Remove="builds\release\net8.0\appsettings.json" />
+    <_ContentIncludedByDefault Remove="builds\release\net8.0\KraftwerkFrontend.deps.json" />
+    <_ContentIncludedByDefault Remove="builds\release\net8.0\KraftwerkFrontend.runtimeconfig.json" />
+    <_ContentIncludedByDefault Remove="builds\release\net8.0\KraftwerkFrontend.staticwebassets.runtime.json" />
+    <_ContentIncludedByDefault Remove="builds\Release\net8.0\linux-x64\appsettings.Development.json" />
+    <_ContentIncludedByDefault Remove="builds\release\net8.0\linux-x64\appsettings.Development.json" />
+    <_ContentIncludedByDefault Remove="builds\release\net8.0\linux-x64\appsettings.json" />
+    <_ContentIncludedByDefault Remove="builds\Release\net8.0\linux-x64\appsettings.json" />
+    <_ContentIncludedByDefault Remove="builds\Release\net8.0\linux-x64\KraftwerkFrontend.deps.json" />
+    <_ContentIncludedByDefault Remove="builds\release\net8.0\linux-x64\KraftwerkFrontend.deps.json" />
+    <_ContentIncludedByDefault Remove="builds\release\net8.0\linux-x64\KraftwerkFrontend.runtimeconfig.json" />
+    <_ContentIncludedByDefault Remove="builds\Release\net8.0\linux-x64\KraftwerkFrontend.runtimeconfig.json" />
+    <_ContentIncludedByDefault Remove="builds\release\net8.0\linux-x64\KraftwerkFrontend.staticwebassets.runtime.json" />
+    <_ContentIncludedByDefault Remove="builds\Release\net8.0\linux-x64\KraftwerkFrontend.staticwebassets.runtime.json" />
+    <_ContentIncludedByDefault Remove="builds\release\net8.0\linux-x64\publish\appsettings.Development.json" />
+    <_ContentIncludedByDefault Remove="builds\Release\net8.0\linux-x64\publish\appsettings.Development.json" />
+    <_ContentIncludedByDefault Remove="builds\Release\net8.0\linux-x64\publish\appsettings.json" />
+    <_ContentIncludedByDefault Remove="builds\release\net8.0\linux-x64\publish\appsettings.json" />
+    <_ContentIncludedByDefault Remove="builds\release\net8.0\linux-x64\publish\KraftwerkFrontend.deps.json" />
+    <_ContentIncludedByDefault Remove="builds\Release\net8.0\linux-x64\publish\KraftwerkFrontend.deps.json" />
+    <_ContentIncludedByDefault Remove="builds\Release\net8.0\linux-x64\publish\KraftwerkFrontend.runtimeconfig.json" />
+    <_ContentIncludedByDefault Remove="builds\release\net8.0\linux-x64\publish\KraftwerkFrontend.runtimeconfig.json" />
+    <_ContentIncludedByDefault Remove="builds\release\net8.0\publish\appsettings.Development.json" />
+    <_ContentIncludedByDefault Remove="builds\release\net8.0\publish\appsettings.json" />
+    <_ContentIncludedByDefault Remove="builds\release\net8.0\publish\KraftwerkFrontend.deps.json" />
+    <_ContentIncludedByDefault Remove="builds\release\net8.0\publish\KraftwerkFrontend.runtimeconfig.json" />
+  </ItemGroup>
+
 </Project>
