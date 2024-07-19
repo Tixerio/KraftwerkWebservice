@@ -32,6 +32,13 @@ namespace Powergrid2.Controllers
             return Ok("Registered");
         }
 
+        [HttpPost("StartNewDay")]
+        public IActionResult StartNewDay()
+        {
+            grid.TimeInInt = 1450 - grid.TimeInInt;
+            return Ok();
+        }
+
         [HttpGet("GetExpectedConsume")]
         public IActionResult GetExpectedConsume()
         {
