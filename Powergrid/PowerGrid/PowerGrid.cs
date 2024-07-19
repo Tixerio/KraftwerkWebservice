@@ -107,6 +107,12 @@ public class PowergridHub : Hub<IPowergridHubClient>
         return Task.CompletedTask;
     }
 
+    public async Task GetExpectedConsume()
+    {
+        await Clients.All.ReceiveExpectedConsume(grid.GetExpectedConsume());
+        Console.WriteLine("Called endpoint");
+    }
+
     public override async Task OnConnectedAsync()
     {
         Console.WriteLine("connected");
@@ -238,13 +244,22 @@ public class Grid
 
     public Dictionary<int, double> GetExpectedConsume()
     {
+        if (Members.Where(x => x.Value.GetType() == typeof(Consumer)).Count() == 0)
+        {
+            return Plan_Member;
+        }
+    
         if (!Plan_User.Any())
         {
             foreach (var (key, value) in Plan_Member)
             {
                 Plan_User.Add(key, value);
+                Console.WriteLine(key);
             }
+            Console.WriteLine("Called in Backend");
+            return Plan_User;
         }
+        Console.WriteLine("Called in Backend");
         return Plan_User;
     }
 }
