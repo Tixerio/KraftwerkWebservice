@@ -92,6 +92,10 @@
 
     public int currentMemberMultiplicator;
 
+    public int GetAmountPowerplants()
+    {
+	    return Members.Count(x => x.Value.Contains("Powerplant"));
+    }
 
     public int CurrentMemberMultiplicator
     {
@@ -218,8 +222,10 @@
                 }
                 MultiplicatorDictionary.Add(member.Key, 5);
             }
-            await InvokeAsync(StateHasChanged);
 
+            Console.WriteLine("Before " + Members.Count());
+            await InvokeAsync(StateHasChanged);
+            Console.WriteLine("After " + Members.Count());
         });
 
         hub.On<Dictionary<string, int>>("ReceiveMemberData", async (message) =>
@@ -311,11 +317,6 @@
                 Display = true,
             },
         },
-        
-        // Interaction = new
-        // {
-        //     Intersect = true
-        // }
     };
 
     Task OnHorizontalLineRefreshed(ChartStreamingData<LiveDataPoint> data)
@@ -328,5 +329,4 @@
 
         return Task.CompletedTask;
     }
-
 }
