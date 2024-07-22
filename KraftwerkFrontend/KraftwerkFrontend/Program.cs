@@ -5,7 +5,7 @@ using Blazorise.Icons.FontAwesome;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.WebHost.UseUrls("https://localhost:7272");
+//builder.WebHost.UseUrls("https://localhost:7272");
 
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
