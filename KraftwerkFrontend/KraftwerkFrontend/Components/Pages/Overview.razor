@@ -10,7 +10,7 @@
 <PageTitle>Overview</PageTitle>
 <div class="d-flex align-content-center text-center justify-content-center h-100 container">
     <div class="row row-cols-2 h-100 w-100">
-        <div class="col"><Vizor.ECharts.EChart CssClass="h-100 w-100" @ref="chart" Options="@options"/></div>
+        <div class="col"><Vizor.ECharts.EChart CssClass="h-100 w-100" @ref="consumptionChart" Options="@options"/></div>
         <div class="col">Column</div>
         <div class="col">Column</div>
         <div class="col">Column</div>
@@ -21,7 +21,7 @@
 
 @code {
     HubConnection hub;
-    private Vizor.ECharts.EChart? chart;
+    private Vizor.ECharts.EChart? consumptionChart;
     private List<int> consumption = new List<int>();
     private int Time { get; set; } = 0;
     private ChartOptions options = new()
@@ -105,22 +105,22 @@
             };
             (options.Series[0] as LineSeries).Data = new_list;
             await InvokeAsync(StateHasChanged);
-            if (chart == null)
+            if (consumptionChart == null)
             {
                 return;
             }
-            await chart.UpdateAsync();
+            await consumptionChart.UpdateAsync();
         });
         hub.On<int>("ReceiveTime", async (message) =>
         {
             Time = message;
             options.XAxis.AxisPointer.Value = Time / 60.0 % 23.0;
             await InvokeAsync(StateHasChanged);
-            if (chart == null)
+            if (consumptionChart == null)
             {
                 return;
             }
-            await chart.UpdateAsync();
+            await consumptionChart.UpdateAsync();
         });
 
 
