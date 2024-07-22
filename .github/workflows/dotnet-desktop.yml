@@ -42,6 +42,10 @@ jobs:
       env:
         Configuration: ${{ matrix.configuration }}
 
+    - name: Ensure publish directory is available
+      run: |
+        sleep 10  # Wait for 10 seconds to ensure no other process is using the file
+
     - name: List published files
       run: dir ./KraftwerkFrontend/bin/${{ matrix.configuration }}/net8.0/
 
