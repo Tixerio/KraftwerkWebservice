@@ -218,6 +218,10 @@
         hub.On<int>("ReceiveTime", async (message) =>
         {
             Time = message;
+            if (checkboxMidnightStop && Time % 1440 == 0 && !Stopped)
+            {
+	            await ChangeStartStop();
+            }
             await InvokeAsync(StateHasChanged);
         });
 
