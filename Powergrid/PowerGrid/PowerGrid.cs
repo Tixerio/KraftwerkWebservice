@@ -16,7 +16,9 @@ public interface IPowergridHubClient
     Task ReceiveMemberData(Dictionary<string, int> data);
     Task ReceiveTime(int hours);
     Task ReceiveStop(bool stopped);
+    Task ReceiveEnergy(double energy);
     Task ReceiveExpectedConsume(Dictionary<int, double> Plan);
+    Task ReceiveBlackout();
 
     Task ReceivePieChartData(Dictionary<string, MarketShare> UserProduction);
 }
@@ -50,7 +52,7 @@ public class PowergridHub : Hub<IPowergridHubClient>
         grid.Stopped = grid.Stopped == false ? true : false;
         if (!grid.Stopped)
         {
-            await GetCurrentTimeR();
+            grid.TimeLoop(Clients);
         }
 
         await Clients.Caller.ReceiveStop(grid.Stopped);
@@ -60,11 +62,6 @@ public class PowergridHub : Hub<IPowergridHubClient>
     {
         grid.MultiplicatorAmount[id] = request;
         grid.InitPlanMember();
-    }
-
-    public async Task GetCurrentTimeR()
-    {
-        grid.TimeLoop(Clients);
     }
 
     public async Task GetMemberDataR()
@@ -108,7 +105,7 @@ public class PowergridHub : Hub<IPowergridHubClient>
 
     public async Task GetEnergyR()
     {
-        await Clients.Caller.ReceiveMessage(grid.AvailableEnergy.ToString());
+        await Clients.Caller.ReceiveEnergy(grid.AvailableEnergy);
     }
 
     public async Task ResetEnergyR()
@@ -239,8 +236,16 @@ public class Grid
                         }
                         await clients.All.ReceivePieChartData(UserProduction);
                     }
-
+                    await Clients.All.ReceiveEnergy(this.AvailableEnergy);
                     TimeInInt += 5;
+                    if ((this.AvailableEnergy / 10000) + 50 > 52.5 || (this.AvailableEnergy / 10000) + 50 < 47.5)
+                    {
+                        this.Members.Clear();
+                        this.Stopped = false;
+                        this.TimeInInt = 0;
+                        this.AvailableEnergy = 0;
+                        await Clients.All.ReceiveBlackout();
+                    }
 
                     Thread.Sleep(1000);
                 }
