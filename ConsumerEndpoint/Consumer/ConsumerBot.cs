@@ -94,6 +94,21 @@ public class Powergrid : IPowergrid, IAsyncInitialization
 
     public async void RegisterR()
     {
+       
+        if (hub.State == HubConnectionState.Disconnected)
+        {
+            try
+            {
+                await hub.StartAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error: Server not running or not possible to connect...\n" +
+                                  "Wait a short moment and try again.");
+                return;
+            }
+        }
+        
         await hub.SendAsync("RegisterR", new MemberObject("Household", "Consumer"));
         hub.On<string>("ReceiveMessage",
             message => this.ID = message);
@@ -115,7 +130,6 @@ public class Powergrid : IPowergrid, IAsyncInitialization
 
     public Task InitializationAsync()
     {
-        hub.StartAsync();
         return Task.CompletedTask;
     }
 

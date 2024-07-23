@@ -28,7 +28,6 @@ public class PowergridHub : Hub<IPowergridHubClient>
     public PowergridHub(Grid grid)
     {
         this.grid = grid;
-       
     }
 
     public async Task ChangeEnergyR(string? id)
@@ -87,7 +86,7 @@ public class PowergridHub : Hub<IPowergridHubClient>
                 grid.Members.Add(id, new Consumer(request.Name));
                 grid.MultiplicatorAmount.Add(id, 500);
                 grid.InitPlanMember();
-                break;
+                break; 
         }
 
         Console.WriteLine("Registered");
@@ -98,6 +97,7 @@ public class PowergridHub : Hub<IPowergridHubClient>
         }
         Console.WriteLine(transformedMembers.Count());
         await Clients.All.ReceiveMembers(transformedMembers);
+        await Clients.All.ReceiveMemberData(grid.MultiplicatorAmount);
         await Clients.Caller.ReceiveMessage(id);
     }
 
@@ -106,13 +106,15 @@ public class PowergridHub : Hub<IPowergridHubClient>
         await Clients.Caller.ReceiveMessage(grid.AvailableEnergy.ToString());
     }
 
-    public Task ResetEnergyR()
+    public async Task ResetEnergyR()
     {
         grid.Members.Clear();
+        grid.MultiplicatorAmount.Clear();
         grid.Stopped = false;
         grid.TimeInInt = 0;
         grid.AvailableEnergy = 0;
-        return Task.CompletedTask;
+        await Clients.All.ReceiveMembers(new Dictionary<string, string>());
+        await Clients.All.ReceiveMemberData(grid.MultiplicatorAmount);
     }
 
     public async Task GetExpectedConsume()
@@ -236,7 +238,6 @@ public class Grid
 
                     Thread.Sleep(1000);
                 }
-
                 ThreadStarted = false;
             }
         });

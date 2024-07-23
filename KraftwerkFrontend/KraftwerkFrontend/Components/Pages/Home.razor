@@ -116,16 +116,6 @@
     public Dictionary<string, string> Members { get; set; } = new();
     public Dictionary<string, int> MultiplicatorDictionary { get; set; } = new();
 
-    public void SetBlackoutAlert()
-    {
-        if (blackoutVisible)
-        {
-            blackoutVisible = false;
-            return;
-        }
-
-        blackoutVisible = true;
-    }
 
     public bool Stopped { get; set; } = false;
 
@@ -181,6 +171,21 @@
     public int Time { get; set; } = 0;
     public DateTime CurrentTime = new DateTime();
 
+    private async Task ConnectToHub()
+    {
+	    while (hub.State == HubConnectionState.Disconnected)
+	    {
+		    try
+		    {
+			    await hub.StartAsync();
+		    }
+		    catch (Exception ex)
+		    {
+			    Console.WriteLine("Error: Server not running or not possible to connect...");
+			    await Task.Delay(1000);
+		    }
+	    }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -188,7 +193,7 @@
             .WithUrl("https://localhost:7272/Powergrid")
             .Build();
 
-        await hub.StartAsync();
+        await ConnectToHub();
         await hub.SendAsync("GetMemberDataR");
 
         hub.On<string>("ReceiveMessage", async (message) =>
@@ -223,9 +228,7 @@
                 MultiplicatorDictionary.Add(member.Key, 5);
             }
 
-            Console.WriteLine("Before " + Members.Count());
             await InvokeAsync(StateHasChanged);
-            Console.WriteLine("After " + Members.Count());
         });
 
         hub.On<Dictionary<string, int>>("ReceiveMemberData", async (message) =>
