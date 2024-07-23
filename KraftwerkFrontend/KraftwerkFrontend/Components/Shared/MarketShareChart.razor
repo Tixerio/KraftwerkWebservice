@@ -1,0 +1,69 @@
+@page "/MarketShareChart"
+@using Color = Vizor.ECharts.Color
+@using Label = Vizor.ECharts.Label
+@using Tooltip = Vizor.ECharts.Tooltip
+
+<Vizor.ECharts.EChart CssClass="h-100 w-100" @ref="@chart" Options="@options"/>
+
+@code {
+    [Parameter] public Dictionary<string, (string,double)> MarketShares { get; set; } = new Dictionary<string, (string,double)>();
+    
+    private EChart? chart;
+
+    public class DataPoint
+    {
+        double Value;
+        string Name;
+
+        public DataPoint(string key, double value)
+        {
+            Name = key;
+            Value = value;
+        }
+    }
+
+    private readonly ChartOptions options = new()
+    {
+        Legend = new Legend
+        {
+            Show = false
+        },
+        Series = new List<ISeries>
+        {
+            new PieSeries()
+            {
+                Label = new Label() {
+                    Color = Color.FromRGB(150, 150, 150) 
+                }
+                
+            },
+        }
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (chart == null)
+        {
+            return;
+        }
+        var values = MarketShares.ToList().ConvertAll(x => new PieSeriesData{Name = x.Value.Item1,Value = x.Value.Item2}).ToArray();
+        (options.Series[0] as PieSeries).Data = values;
+        await Task.Run(() => chart.UpdateAsync());
+
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (chart == null)
+        {
+            return;
+        }
+        
+        var values = MarketShares.ToList().ConvertAll(x => new PieSeriesData{Name = x.Value.Item1,Value = x.Value.Item2}).ToArray();
+    
+        (options.Series[0] as PieSeries).Data = values;
+        Task.Run(() => chart.UpdateAsync());
+
+    }
+
+}

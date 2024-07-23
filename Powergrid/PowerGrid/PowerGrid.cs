@@ -3,6 +3,12 @@ using Console = System.Console;
 using Microsoft.AspNetCore.SignalR;
 // ReSharper disable All
 
+public class MarketShare
+{
+    public string Name { get; set; }
+    public double Value { get; set; }
+}
+
 public interface IPowergridHubClient
 {
     Task ReceiveMessage(string message);
@@ -12,7 +18,7 @@ public interface IPowergridHubClient
     Task ReceiveStop(bool stopped);
     Task ReceiveExpectedConsume(Dictionary<int, double> Plan);
 
-    Task ReceivePieChartData(Dictionary<string, double> UserProduction, double OverallProduction, int currentTime);
+    Task ReceivePieChartData(Dictionary<string, MarketShare> UserProduction);
 }
 
 public class PowergridHub : Hub<IPowergridHubClient>
@@ -216,16 +222,14 @@ public class Grid
 
                     if (TimeInInt % 60 == 0)
                     {
-                        var UserProduction = new Dictionary<string, double>();
-                        double OverallProduction = 0;
+                        var UserProduction = new Dictionary<string, MarketShare>();
                         foreach (var (key, value) in Members.Where(x => x.Value.GetType() == typeof(Powerplant)))
                         {
                             var powerplant = (Powerplant)value;
-                            UserProduction.Add(key, powerplant.Produced);
-                            OverallProduction += powerplant.Produced;
+                            UserProduction.Add(key, new MarketShare{ Name = value.Name, Value = powerplant.Produced});
+                            powerplant.Produced = 0;
                         }
-
-                        await clients.All.ReceivePieChartData(UserProduction, OverallProduction, TimeInInt / 60 % 24);
+                        await clients.All.ReceivePieChartData(UserProduction);
                     }
 
                     TimeInInt += 5;
@@ -271,12 +275,9 @@ public class Grid
             foreach (var (key, value) in Plan_Member)
             {
                 Plan_User.Add(key, value);
-                Console.WriteLine(key);
             }
-            Console.WriteLine("Called in Backend");
             return Plan_User;
         }
-        Console.WriteLine("Called in Backend");
         return Plan_User;
     }
 }
