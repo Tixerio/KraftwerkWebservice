@@ -28,6 +28,7 @@ public class PowergridHub : Hub<IPowergridHubClient>
     public PowergridHub(Grid grid)
     {
         this.grid = grid;
+       
     }
 
     public async Task ChangeEnergyR(string? id)
@@ -39,6 +40,7 @@ public class PowergridHub : Hub<IPowergridHubClient>
         }
         grid.ChangeEnergy(id);
     }
+
     public async Task StartStop()
     {
         grid.Stopped = grid.Stopped == false ? true : false;
@@ -60,7 +62,7 @@ public class PowergridHub : Hub<IPowergridHubClient>
     {
         grid.TimeLoop(Clients);
     }
-    
+
     public async Task GetMemberDataR()
     {
         Dictionary<string, string> transformedMembersDic = new();
@@ -94,16 +96,16 @@ public class PowergridHub : Hub<IPowergridHubClient>
         {
             transformedMembers.Add(key, $"{value.Name}({value.GetType()})");
         }
-
+        Console.WriteLine(transformedMembers.Count());
         await Clients.All.ReceiveMembers(transformedMembers);
         await Clients.Caller.ReceiveMessage(id);
     }
-    
+
     public async Task GetEnergyR()
     {
         await Clients.Caller.ReceiveMessage(grid.AvailableEnergy.ToString());
     }
-    
+
     public Task ResetEnergyR()
     {
         grid.Members.Clear();
@@ -121,7 +123,7 @@ public class PowergridHub : Hub<IPowergridHubClient>
 
     public override async Task OnConnectedAsync()
     {
-        Console.WriteLine("connected");
+        this.grid.GetClients(Clients);
         await base.OnConnectedAsync();
     }
 
@@ -133,7 +135,7 @@ public class PowergridHub : Hub<IPowergridHubClient>
 
 public interface IMember
 {
-    public string Name { get; set; } 
+    public string Name { get; set; }
     public double Energy { get; }
 }
 
@@ -149,13 +151,35 @@ public class Grid
     public bool Stopped { get; set; } = false;
     public bool ThreadStarted { get; set; } = false;
     public double AvailableEnergy { get; set; }
-    
+    private IHubCallerClients<IPowergridHubClient>? _clients;
+
+    public IHubCallerClients<IPowergridHubClient> Clients
+    {
+        get
+        {
+            if (_clients == null)
+            {
+                throw new InvalidOperationException("Clients have not been initialized. Ensure GetClients is called before accessing this property.");
+            }
+            return _clients;
+        }
+        set
+        {
+            _clients = value;
+        }
+    }
+
     public Grid(ILogger<Grid> logger)
     {
         _logger = logger;
     }
 
-    public async void ChangeEnergy(String ID)
+    public void GetClients(IHubCallerClients<IPowergridHubClient> clients)
+    {
+        Clients = clients;
+    }
+
+    public void ChangeEnergy(string ID)
     {
         if (!Stopped)
         {
@@ -178,9 +202,9 @@ public class Grid
         }
     }
 
-    public async void TimeLoop(IHubCallerClients<IPowergridHubClient> clients)
+    public void TimeLoop(IHubCallerClients<IPowergridHubClient> clients)
     {
-        Thread threadTime = new Thread(async() =>
+        Thread threadTime = new Thread(async () =>
         {
             int currentMembers = Members.Count();
             if (!ThreadStarted)
@@ -193,7 +217,7 @@ public class Grid
                     {
                         Plan_User.Clear();
                         TimeInInt = 0;
-                        clients.All.ReceiveExpectedConsume(GetExpectedConsume());
+                        await clients.All.ReceiveExpectedConsume(GetExpectedConsume());
                     }
 
                     if (TimeInInt % 60 == 0)
@@ -209,17 +233,6 @@ public class Grid
                     }
 
                     TimeInInt += 5;
-                    if (currentMembers != Members.Count())
-                    {
-                        currentMembers = Members.Count();
-                        Dictionary<string, string> transformedMembersDic = new();
-                        foreach (var (key, value) in Members.Where(x => x.Value.GetType() == typeof(Consumer)))
-                        {
-                            transformedMembersDic.Add(key, $"{value.Name}({value.GetType()})");
-                        }
-
-                        await clients.All.ReceiveMembers(transformedMembersDic);
-                    }
 
                     Thread.Sleep(1000);
                 }
@@ -235,7 +248,7 @@ public class Grid
         Plan_Member.Clear();
         for (int i = 0; i < 24; i++)
         {
-            Plan_Member.Add(i,0);
+            Plan_Member.Add(i, 0);
             foreach (var (key, value) in Members.Where(x => x.Value.GetType() == typeof(Consumer)))
             {
                 Plan_Member[i] -= (value.Energy *
@@ -248,11 +261,15 @@ public class Grid
 
     public Dictionary<int, double> GetExpectedConsume()
     {
+        if (!Plan_Member.Any())
+        {
+            InitPlanMember();
+        }
         if (Members.Where(x => x.Value.GetType() == typeof(Consumer)).Count() == 0)
         {
             return Plan_Member;
         }
-    
+
         if (!Plan_User.Any())
         {
             foreach (var (key, value) in Plan_Member)
@@ -264,3 +281,4 @@ public class Grid
         return Plan_User;
     }
 }
+

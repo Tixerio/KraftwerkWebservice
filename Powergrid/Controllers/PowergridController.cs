@@ -32,6 +32,13 @@ namespace Powergrid2.Controllers
             return Ok("Registered");
         }
 
+        [HttpPost("StartNewDay")]
+        public IActionResult StartNewDay()
+        {
+            grid.TimeInInt = 1450 - grid.TimeInInt;
+            return Ok();
+        }
+
         [HttpGet("GetExpectedConsume")]
         public IActionResult GetExpectedConsume()
         {
@@ -55,21 +62,29 @@ namespace Powergrid2.Controllers
 
         public IActionResult Register([FromBody] MemberObject request)
         {
-            var ID = Guid.NewGuid().ToString();
+            var id = Guid.NewGuid().ToString();
             switch (request.Type)
             {
                 case "Powerplant":
-                    grid.Members.Add(ID, new Powerplant(request.Name));
-                    grid.MultiplicatorAmount.Add(ID, 5);
+                    grid.Members.Add(id, new Powerplant(request.Name));
+                    grid.MultiplicatorAmount.Add(id, 5);
                     break;
                 case "Consumer":
-                    grid.Members.Add(ID, new Consumer(request.Name));
-                    grid.MultiplicatorAmount.Add(ID, 500);
+                    grid.Members.Add(id, new Consumer(request.Name));
+                    grid.MultiplicatorAmount.Add(id, 500);
+                    grid.InitPlanMember();
                     break;
             }
 
             Console.WriteLine("Registered");
-            return Ok(ID);
+            Dictionary<string, string> transformedMembers = new();
+            foreach (var (key, value) in grid.Members)
+            {
+                transformedMembers.Add(key, $"{value.Name}({value.GetType()})");
+            }
+
+            grid.Clients.All.ReceiveMembers(transformedMembers);
+            return Ok(id);
         }
 
         [HttpPost("ForceBlackout")]
