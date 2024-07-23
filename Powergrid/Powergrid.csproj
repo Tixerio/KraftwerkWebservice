@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
 	<TargetFramework>net8.0</TargetFramework>
+	<IsTransformWebConfigDisabled>true</IsTransformWebConfigDisabled>
 	<GenerateDocumentationFile>true</GenerateDocumentationFile>
 	<!-- Ensure XML documentation is generated -->
 	<NoWarn>$(NoWarn);SA0001</NoWarn>
