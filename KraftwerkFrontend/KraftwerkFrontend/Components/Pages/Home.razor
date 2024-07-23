@@ -91,9 +91,6 @@
 </div>
 
 @code {
-
-    private Modal modalRef;
-
     private bool checkboxMidnightStop = false;
 
     public bool blackoutVisible = false;
@@ -184,7 +181,7 @@
             {
                 await hub.StartAsync();
             }
-            catch (Exception ex)
+            catch (Exception _)
             {
                 Console.WriteLine("Error: Server not running or not possible to connect...");
                 await Task.Delay(1000);
@@ -214,6 +211,8 @@
         hub.On<bool>("ReceiveStop", async (message) =>
         {
             Stopped = message;
+            await InvokeAsync(StateHasChanged);
+
         });
         hub.On<int>("ReceiveTime", async (message) =>
         {

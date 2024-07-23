@@ -44,7 +44,6 @@ public class PowergridHub : Hub<IPowergridHubClient>
 
     public async Task StartStop()
     {
-        Console.WriteLine(grid.TimeInInt);
         if (grid.TimeInInt == 5)
         {
             grid.Plan_User.Clear();
@@ -97,7 +96,6 @@ public class PowergridHub : Hub<IPowergridHubClient>
         {
             transformedMembers.Add(key, $"{value.Name}({value.GetType()})");
         }
-        Console.WriteLine(transformedMembers.Count());
         await Clients.All.ReceiveMembers(transformedMembers);
         await Clients.All.ReceiveMemberData(grid.MultiplicatorAmount);
         await Clients.Caller.ReceiveMessage(id);
@@ -122,7 +120,6 @@ public class PowergridHub : Hub<IPowergridHubClient>
     public async Task GetExpectedConsume()
     {
         await Clients.All.ReceiveExpectedConsume(grid.GetExpectedConsume());
-        Console.WriteLine("Called endpoint");
     }
 
     public override async Task OnConnectedAsync()
