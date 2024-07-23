@@ -38,16 +38,16 @@
             </div>
             
             <div class="d-flex flex-row mx-auto p-1 align-items-center">
-                <svg fill="#ffffff" height="2rem" width="2rem" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-                     viewBox="0 0 360.627 360.627" xml:space="preserve">
-                    <g id="XMLID_931_">
-                        <g>
-                            <g>
-                                <path d="M259.652,112.643L259.652,112.643l-7.282,148.468l-55.115-33.255H143.93V94.475L54.401,16.036v43.47L0,17.837v340.869
+	            <svg fill="#ffffff" height="2rem" width="2rem" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+	                 viewBox="0 0 360.627 360.627" xml:space="preserve">
+		            <g id="XMLID_931_">
+			            <g>
+				            <g>
+					            <path d="M259.652,112.643L259.652,112.643l-7.282,148.468l-55.115-33.255H143.93V94.475L54.401,16.036v43.47L0,17.837v340.869
                                                     h124.06h19.871h103.653h10.8h73.076l-12.069-246.063H259.652z M123.93,338.706H20V306.4h63.388v-20H20v-36.444h63.388v-20H20
                                                     v-36.444h63.388v-20H20v-36.444h63.388v-20H20V58.349l54.401,41.669V60.15l49.529,43.394V338.706z M248.565,338.705H144.06
                                                     v-90.85h47.629l59.569,35.943L248.565,338.705z M268.588,338.706l10.107-206.063h21.653l10.107,206.063H268.588z"/>
-                                <path d="M349.321,13.246c-7.303-7.303-17.013-11.325-27.342-11.325c-10.328,0-20.038,4.022-27.342,11.325
+					            <path d="M349.321,13.246c-7.303-7.303-17.013-11.325-27.342-11.325c-10.328,0-20.038,4.022-27.342,11.325
                                                     c-5.329,5.329-8.937,12.02-10.478,19.284c-2.638,1.494-5.078,3.344-7.223,5.488c-13.126,13.126-13.126,34.484,0,47.612
                                                     c6.359,6.358,14.813,9.86,23.806,9.86c8.993,0,17.447-3.502,23.806-9.86c2.145-2.146,3.994-4.585,5.489-7.224
                                                     c7.264-1.541,13.954-5.148,19.284-10.478C364.396,52.854,364.396,28.322,349.321,13.246z M335.179,53.787
@@ -55,18 +55,24 @@
                                                     c-2.581,2.581-6.013,4.003-9.664,4.003c-3.65,0-7.083-1.422-9.664-4.002c-5.329-5.329-5.329-14,0-19.328
                                                     c1.527-1.527,3.339-2.643,5.385-3.315l6.571-2.159l0.298-6.91c0.202-4.678,2.136-9.077,5.447-12.388
                                                     c3.525-3.526,8.213-5.468,13.199-5.468c4.986,0,9.674,1.941,13.199,5.468C342.456,34.667,342.456,46.509,335.179,53.787z"/>
-                            </g>
-                        </g>
-                    </g>
-                </svg>
-                <h3 class="m-2 align-self-center me-4">: @Members.Count(x => x.Value.Contains("Powerplant"))
-                </h3>
-                <svg xmlns="http://www.w3.org/2000/svg" width="2.4rem" height="2.4rem" fill="#ffffff" viewBox="0 0 256 256"><path d="M240,208H224V136l2.34,2.34A8,8,0,0,0,237.66,127L139.31,28.68a16,16,0,0,0-22.62,0L18.34,127a8,8,0,0,0,11.32,11.31L32,136v72H16a8,8,0,0,0,0,16H240a8,8,0,0,0,0-16ZM48,120l80-80,80,80v88H160V152a8,8,0,0,0-8-8H104a8,8,0,0,0-8,8v56H48Zm96,88H112V160h32Z"></path></svg>
-                <h3 class="m-2 align-self-center">: @Members.Count(x => x.Value.Contains("Consumer"))
-                </h3>
+				            </g>
+			            </g>
+		            </g>
+	            </svg>
+	            <h3 class="m-2 align-self-center me-4">: @Members.Count(x => x.Value.Contains("Powerplant"))
+	            </h3>
+	            <svg xmlns="http://www.w3.org/2000/svg" width="2.4rem" height="2.4rem" fill="#ffffff" viewBox="0 0 256 256"><path d="M240,208H224V136l2.34,2.34A8,8,0,0,0,237.66,127L139.31,28.68a16,16,0,0,0-22.62,0L18.34,127a8,8,0,0,0,11.32,11.31L32,136v72H16a8,8,0,0,0,0,16H240a8,8,0,0,0,0-16ZM48,120l80-80,80,80v88H160V152a8,8,0,0,0-8-8H104a8,8,0,0,0-8,8v56H48Zm96,88H112V160h32Z"></path></svg>
+	            <h3 class="m-2 align-self-center">: @Members.Count(x => x.Value.Contains("Consumer"))
+	            </h3>
             </div>
-            <div class="ms-auto align-self-center me-2">
-                <h3 class="my-auto">@CurrentTime.AddMinutes(Time).TimeOfDay</h3>
+            <div class="ms-auto align-self-center me-2 d-flex flex-row">
+	            <div class="align-self-center my-auto h-100">
+		            <label class="form-label align-self-center" style="margin-bottom: 0rem !important" for="pauseMidnightCheckbox">
+			            Stop at midnight: 
+		            </label>
+		            <InputCheckbox class="me-2" @bind-Value="@checkboxMidnightStop"  id="pauseMidnightCheckbox"/>
+	            </div>
+	            <h3 class="my-auto">@CurrentTime.AddMinutes(Time).TimeOfDay</h3>
             </div>
         </div>
         <div class="p-3">
@@ -85,16 +91,18 @@
 </div>
 
 @code {
-    
+
     private Modal modalRef;
-    
+
+    private bool checkboxMidnightStop = false;
+
     public bool blackoutVisible = false;
 
     public int currentMemberMultiplicator;
 
     public int GetAmountPowerplants()
     {
-	    return Members.Count(x => x.Value.Contains("Powerplant"));
+        return Members.Count(x => x.Value.Contains("Powerplant"));
     }
 
     public int CurrentMemberMultiplicator
@@ -173,18 +181,18 @@
 
     private async Task ConnectToHub()
     {
-	    while (hub.State == HubConnectionState.Disconnected)
-	    {
-		    try
-		    {
-			    await hub.StartAsync();
-		    }
-		    catch (Exception ex)
-		    {
-			    Console.WriteLine("Error: Server not running or not possible to connect...");
-			    await Task.Delay(1000);
-		    }
-	    }
+        while (hub.State == HubConnectionState.Disconnected)
+        {
+            try
+            {
+                await hub.StartAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error: Server not running or not possible to connect...");
+                await Task.Delay(1000);
+            }
+        }
     }
 
     protected override async Task OnInitializedAsync()
@@ -211,8 +219,8 @@
         });
         hub.On<int>("ReceiveTime", async (message) =>
         {
-	        Time = message;
-	        await InvokeAsync(StateHasChanged);
+            Time = message;
+            await InvokeAsync(StateHasChanged);
         });
 
         hub.On<Dictionary<string, string>>("ReceiveMembers", async (message) =>
@@ -244,6 +252,7 @@
 
     private async Task ChangeStartStop()
     {
+        Stopped = Stopped == true ? false : true;
         await hub.SendAsync("StartStop");
     }
 
@@ -251,7 +260,6 @@
     {
         await hub.SendAsync("GetMemberDataR");
         await hub.SendAsync("GetCurrentTimeR");
-
         while (true)
         {
             try
@@ -269,8 +277,13 @@
                 blackoutVisible = true;
                 await Reset();
             }
+            if (checkboxMidnightStop && Time % 1440 == 0 && !Stopped)
+            {
+                await ChangeStartStop();
+            }
+
             await InvokeAsync(StateHasChanged);
-            await Task.Delay(2000);
+            await Task.Delay(1000);
         }
     }
 

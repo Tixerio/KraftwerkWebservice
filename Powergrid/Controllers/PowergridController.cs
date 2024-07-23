@@ -35,7 +35,7 @@ namespace Powergrid2.Controllers
         [HttpPost("StartNewDay")]
         public IActionResult StartNewDay()
         {
-            grid.TimeInInt = 1450 - grid.TimeInInt;
+            grid.TimeInInt = 1435;
             return Ok();
         }
 

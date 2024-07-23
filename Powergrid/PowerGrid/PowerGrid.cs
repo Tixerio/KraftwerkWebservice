@@ -42,6 +42,11 @@ public class PowergridHub : Hub<IPowergridHubClient>
 
     public async Task StartStop()
     {
+        Console.WriteLine(grid.TimeInInt);
+        if (grid.TimeInInt == 5)
+        {
+            grid.Plan_User.Clear();
+        }
         grid.Stopped = grid.Stopped == false ? true : false;
         if (!grid.Stopped)
         {
@@ -86,7 +91,7 @@ public class PowergridHub : Hub<IPowergridHubClient>
                 grid.Members.Add(id, new Consumer(request.Name));
                 grid.MultiplicatorAmount.Add(id, 500);
                 grid.InitPlanMember();
-                break; 
+                break;
         }
 
         Console.WriteLine("Registered");
@@ -218,6 +223,7 @@ public class Grid
                     if (TimeInInt % 1440 == 0)
                     {
                         Plan_User.Clear();
+                        Plan_Member.Clear();
                         TimeInInt = 0;
                         await clients.All.ReceiveExpectedConsume(GetExpectedConsume());
                     }
@@ -253,10 +259,11 @@ public class Grid
             foreach (var (key, value) in Members.Where(x => x.Value.GetType() == typeof(Consumer)))
             {
                 Plan_Member[i] -= (value.Energy *
-                    MultiplicatorAmount.FirstOrDefault(x => x.Key == key).Value * new Random().Next(9, 11) /
-                    10 * ((Consumer)value).ConsumePercentDuringDayNight[i]);
+                    MultiplicatorAmount.FirstOrDefault(x => x.Key == key).Value + new Random().Next(100)) * new Random().Next(8, 15) /
+                    10 * ((Consumer)value).ConsumePercentDuringDayNight[i];
                 ((Consumer)value).Hour = i;
             }
+        
         }
     }
 
@@ -275,7 +282,7 @@ public class Grid
         {
             foreach (var (key, value) in Plan_Member)
             {
-                Plan_User.Add(key, value);
+                Plan_User.Add(key, Math.Round(value, 2));
             }
             return Plan_User;
         }
