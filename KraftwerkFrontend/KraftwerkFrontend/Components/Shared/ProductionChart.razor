@@ -1,0 +1,73 @@
+@using Vizor.ECharts;
+@using Color = Vizor.ECharts.Color
+@using Label = Vizor.ECharts.Label
+@using Tooltip = Vizor.ECharts.Tooltip
+@using System.Text.Json.Serialization;
+<Vizor.ECharts.EChart CssClass="abs h-100 w-100" @ref="@chart" Options="@options"/>
+@code {
+    [Parameter] public List<(DateTime,double)> ProductionList { get; set; } = new List<(DateTime,double)>();
+    private Vizor.ECharts.EChart? chart;
+
+    private ChartOptions options = new()
+    {
+        YAxis = new YAxis()
+        {
+            Max = 2.5,
+            Min = -2.5,
+            Type = AxisType.Value,
+            AxisLabel = new AxisLabel()
+            {
+                Formatter = new StringOrFunction(new JavascriptFunction("val => `${val+50}`")),
+            }
+            
+        },
+        XAxis = new XAxis()
+        {
+            Offset = 50,
+            AxisLine = new AxisLine()
+            {
+                OnZero = false,
+            },
+            Type = AxisType.Time,
+            BoundaryGap = false,
+            Show = false,
+            
+        },
+        Series = new List<ISeries>()
+        {
+            new LineSeries()
+            {
+                Smooth = true,
+                ShowSymbol = false,
+                LineStyle = new LineStyle()
+                {
+                    Color = Color.FromRGB(166, 74, 94)
+                },
+                AreaStyle = new AreaStyle()
+                {
+                    Color = [Color.FromRGB(166, 74, 94)],
+                },
+                
+            }
+        },
+        Animation = false,
+    };
+    protected override async Task OnInitializedAsync()
+    {
+        var values = ProductionList.ToList().ConvertAll(x => new SeriesData<DateTime,double>(){Value1 = x.Item1, Value2 = x.Item2}).ToArray();
+
+        (options.Series[0] as LineSeries).Data = values;
+
+    }
+
+    protected override void OnParametersSet()
+    {
+        var values = ProductionList.ToList().ConvertAll(x => new SeriesData<DateTime,double>() {Value1=x.Item1,Value2=x.Item2}).ToArray();
+        (options.Series[0] as LineSeries).Data = values;
+        if (chart == null)
+        {
+            return;
+        }
+        Task.Run(() => chart.UpdateAsync());
+    }
+}

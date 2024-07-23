@@ -7,7 +7,7 @@
 
 <PageTitle>Home</PageTitle>
 <div class="align-content-center text-center justify-content-center h-100 w-100">
-    <Modal @bind-Visible="blackoutVisible">
+    <Modal @bind-Visible="@blackoutVisible">
         <ModalContent Centered>
             <ModalHeader>
                 <CloseButton />
@@ -115,8 +115,6 @@
     LineChart<LiveDataPoint> horizontalLineChart;
     public Dictionary<string, string> Members { get; set; } = new();
     public Dictionary<string, int> MultiplicatorDictionary { get; set; } = new();
-
-
     public bool Stopped { get; set; } = false;
 
     private void OnDropdownChange(ChangeEventArgs e)
@@ -139,7 +137,6 @@
         {
             await Task.WhenAll(
                 HandleRedraw(horizontalLineChart, GetLineChartDataset1));
-            await GetEnergyStart();
         }
     }
 
@@ -195,15 +192,16 @@
 
         await ConnectToHub();
         await hub.SendAsync("GetMemberDataR");
-
-        hub.On<string>("ReceiveMessage", async (message) =>
+        await hub.SendAsync("StartStop");
+        hub.On<double>("ReceiveEnergy", async (message) =>
         {
-            if (double.TryParse(message, out var newEnergy))
-            {
-                Energy = newEnergy;
-
-                await InvokeAsync(StateHasChanged);
-            }
+            Energy = message;
+            await InvokeAsync(StateHasChanged);
+        });
+        hub.On("ReceiveBlackout", async () =>
+        {
+            blackoutVisible = true;
+            await InvokeAsync(StateHasChanged);
         });
         hub.On<bool>("ReceiveStop", async (message) =>
         {
@@ -227,7 +225,6 @@
                 }
                 MultiplicatorDictionary.Add(member.Key, 5);
             }
-
             await InvokeAsync(StateHasChanged);
         });
 
@@ -246,34 +243,6 @@
     {
         await hub.SendAsync("StartStop");
     }
-
-    private async Task GetEnergyStart()
-    {
-        await hub.SendAsync("GetMemberDataR");
-        await hub.SendAsync("GetCurrentTimeR");
-
-        while (true)
-        {
-            try
-            {
-                await hub.SendAsync("GetEnergyR");
-
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
-
-            if (Energy / 10000 + 50 > 52.5 || Energy / 10000 + 50 < 47.5)
-            {
-                blackoutVisible = true;
-                await Reset();
-            }
-            await InvokeAsync(StateHasChanged);
-            await Task.Delay(2000);
-        }
-    }
-
     private async Task Reset()
     {
         await hub.SendAsync("ResetEnergyR");
