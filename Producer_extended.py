@@ -6,11 +6,13 @@ import random
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 KRAFTWERK_COUNT = 10
 
-
+with open("greek_names.txt","r") as f:
+    names = f.readlines()
+    random.shuffle(names)
 
 # This function is used to register a powerplant in the system
-def register():
-    return requests.post(url = "https://localhost:7272/Powergrid/Register",json={"name":"test" + str(random.randint(0,219301231)),"type":"Powerplant"}, verify=False).text
+def register(name: str):
+    return requests.post(url = "https://localhost:7272/Powergrid/Register",json={"name": name, "type":"Powerplant"}, verify=False).text
 
 # This function generates power for the powerplant with the given key
 def power(key: str):
@@ -38,8 +40,7 @@ def needed_energy():
 
 
 # Register the powerplants
-keys = [register() for i in range(KRAFTWERK_COUNT)]
-
+keys = [register(names[i]) for i in range(KRAFTWERK_COUNT)]
 # Calculate the energy produced by the first powerplant, we assume that all powerplants produce the same amount of energy
 energy_pro_call = calc_producing(key=keys[0])
 print(energy_pro_call)
@@ -87,7 +88,7 @@ def tick():
 
 # Main loop
 while True != 0:
-    # getting the needed energy for this hour
+    # gettign the needed energy for this hour
     needed = float(HOURS_24[str(current_time % 24)])
     # tick
     tick()
