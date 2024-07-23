@@ -1,0 +1,100 @@
+@using Vizor.ECharts;
+@using Color = Vizor.ECharts.Color
+@using Label = Vizor.ECharts.Label
+@using Tooltip = Vizor.ECharts.Tooltip
+@using Blazorise.Extensions
+
+<Vizor.ECharts.EChart CssClass="h-100 w-100" @ref="@chart" Options="@options"/>
+
+@code {
+    [Parameter] public int Time { get; set; } = 0;
+    [Parameter] public double[][] ConsumptionList { get; set; } = new double[24][];
+
+    private Vizor.ECharts.EChart? chart;
+
+    private ChartOptions options = new()
+    {
+        YAxis = new YAxis()
+        {
+            Type = AxisType.Value,
+            
+        },
+        XAxis = new XAxis()
+        {
+            Max = 23,
+            AxisPointer = new AxisPointer()
+            {
+                Show = true,
+                Value  = 0.1,
+                Snap = false,
+                Label = new Label()
+                {
+                    Formatter = new StringOrFunction(new JavascriptFunction("function (value) { return `${String(Math.trunc(value.value)).padStart(2,'0')}:${String(Math.round(value.value*60%60)).padStart(2,'0')}`; }")),
+                },
+                LineStyle = new LineStyle()
+                {
+                    Color = "#ffffff",
+                    Width = 2,
+                },
+                Handle = new Handle()
+                {
+                    Show = true,
+                    Size = 0,
+                }
+                
+            },
+            Type = AxisType.Value,
+            
+        },
+        Tooltip = new Tooltip()
+        {
+            TriggerOn = TriggerOn.None
+        },
+        Legend = new Legend()
+        {
+            Orient = Orient.Vertical,
+            Left = "left"
+        },
+        Series = new List<ISeries>()
+        {
+            new LineSeries()
+            {
+                Emphasis = new()
+                {
+                    ItemStyle = new()
+                    {
+                        ShadowBlur = 10,
+                        ShadowOffsetX = 0,
+                        ShadowColor = Color.FromRGBA(0, 0, 0, 0.5)
+                    }
+                }
+            }
+        }
+    };
+    
+    protected override async Task OnInitializedAsync()
+    {
+        if (ConsumptionList.Length == 0)
+        {
+            for (int i = 0; i < 24; i++)
+            {
+                ConsumptionList[i] = [(double)i,0.0];
+            }
+        }
+        (options.Series[0] as LineSeries).Data = ConsumptionList;
+        options.XAxis.AxisPointer.Value = 0.0;
+
+    }
+
+    protected override void OnParametersSet()
+    {
+        options.XAxis.AxisPointer.Value = Time / 60.0 % 23.0;
+        (options.Series[0] as LineSeries).Data = ConsumptionList;
+        if (chart == null)
+        {
+            return;
+        }
+        Task.Run(() => chart.UpdateAsync());
+    }
+
+}

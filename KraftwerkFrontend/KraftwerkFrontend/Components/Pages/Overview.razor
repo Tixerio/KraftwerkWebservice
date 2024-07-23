@@ -4,16 +4,25 @@
 @using Color = Vizor.ECharts.Color
 @using Label = Vizor.ECharts.Label
 @using Tooltip = Vizor.ECharts.Tooltip
+@using KraftwerkFrontend.Components.Shared
+@using Blazorise.DeepCloner
 @rendermode InteractiveServer
 
 
 <PageTitle>Overview</PageTitle>
-<div class="d-flex align-content-center text-center justify-content-center h-100 container">
+<div class="d-flex align-content-center justify-content-center h-100 container">
     <div class="row row-cols-2 h-100 w-100">
-        <div class="col"><Vizor.ECharts.EChart CssClass="h-100 w-100" @ref="consumptionChart" Options="@options"/></div>
+        <div class="col"><ConsumptionChart Time="@Time" ConsumptionList="@expectedConsumption"></ConsumptionChart></div>
+        <div class="col"><MarketShareChart MarketShares="@marketShares"></MarketShareChart></div>
         <div class="col">Column</div>
-        <div class="col">Column</div>
-        <div class="col">Column</div>
+        <div class="col">
+            <div class="h-100 w-100 d-flex align-content-center justify-content-center">
+                <div class="mb-3">
+                    <label for="id-input" class="form-label">Kraftwerk ID</label>
+                    <InputText class="form-control" id="id-input" @bind-Value="@ID"></InputText>
+                </div>
+            </div>
+        </div>
     </div>
 
 </div>
@@ -21,73 +30,18 @@
 
 @code {
     HubConnection hub;
-    private Vizor.ECharts.EChart? consumptionChart;
-    private List<int> consumption = new List<int>();
+    private double[][] expectedConsumption = new double[24][];
+    private Dictionary<string, (string,double)> marketShares = new Dictionary<string, (string,double)>();
     private int Time { get; set; } = 0;
-    private ChartOptions options = new()
-    {
-        YAxis = new YAxis()
-        {
-            Type = AxisType.Value,
-            
-        },
-        XAxis = new XAxis()
-        {
-            Max = 23,
-            AxisPointer = new AxisPointer()
-            {
-                Show = true,
-                Value  = 0.1,
-                Snap = false,
-                Label = new Label()
-                {
-                    Formatter = new StringOrFunction(new JavascriptFunction("function (value) { return `${String(Math.trunc(value.value)).padStart(2,'0')}:${String(Math.round(value.value*60%60)).padStart(2,'0')}`; }")),
-                },
-                LineStyle = new LineStyle()
-                {
-                    Color = "#ffffff",
-                    Width = 2,
-                },
-                Handle = new Handle()
-                {
-                    Show = true,
-                    Size = 0,
-                }
-                
-            },
-            Type = AxisType.Value,
-            
-        },
-        Tooltip = new Tooltip()
-        {
-            TriggerOn = TriggerOn.None
-        },
-        Legend = new Legend()
-        {
-            Orient = Orient.Vertical,
-            Left = "left"
-        },
-        Series = new List<ISeries>()
-        {
-            new LineSeries()
-            {
-                Data = new double[][]
-                {
-                    [1048.0,1.0],
-                },
-                Emphasis = new()
-                {
-                    ItemStyle = new()
-                    {
-                        ShadowBlur = 10,
-                        ShadowOffsetX = 0,
-                        ShadowColor = Color.FromRGBA(0, 0, 0, 0.5)
-                    }
-                }
-            }
-        }
-    };
+    private string? ID { get; set;}
 
+    public class MarketShare
+    {
+        public string Name { get; set; }
+        public double Value { get; set; }
+    }
+    
+    
     protected override async Task OnInitializedAsync()
     {
         hub = new HubConnectionBuilder()
@@ -103,24 +57,21 @@
             {
                 new_list[i] = [i, values[i]];
             };
-            (options.Series[0] as LineSeries).Data = new_list;
+            expectedConsumption = new_list;
             await InvokeAsync(StateHasChanged);
-            if (consumptionChart == null)
-            {
-                return;
-            }
-            await consumptionChart.UpdateAsync();
         });
         hub.On<int>("ReceiveTime", async (message) =>
         {
             Time = message;
-            options.XAxis.AxisPointer.Value = Time / 60.0 % 23.0;
             await InvokeAsync(StateHasChanged);
-            if (consumptionChart == null)
+        });
+        hub.On<Dictionary<string, MarketShare>>("ReceivePieChartData",async (message) =>
+        {
+            marketShares.Clear();
+            message.ToList().ForEach(x =>
             {
-                return;
-            }
-            await consumptionChart.UpdateAsync();
+                marketShares[x.Key] = (x.Value.Name, x.Value.Value);
+            }); await InvokeAsync(StateHasChanged);
         });
 
 

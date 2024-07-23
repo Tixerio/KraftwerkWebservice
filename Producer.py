@@ -4,11 +4,11 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 import math
 import random
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-
+KRAFTWERK_COUNT = 10
 
 
 def register():
-    return requests.post(url = "https://localhost:7272/Powergrid/Register",json={"name":"test","type":"Powerplant"}, verify=False).text
+    return requests.post(url = "https://localhost:7272/Powergrid/Register",json={"name":"test" + str(random.randint(0,219301231)),"type":"Powerplant"}, verify=False).text
 
 def power_up(key: str):
     requests.post(url="https://localhost:7272/Powergrid/ChangeEnergy",json=(key), verify=False)
@@ -29,7 +29,7 @@ def needed_energy():
 
 
 
-keys = [register() for i in range(5)]
+keys = [register() for i in range(KRAFTWERK_COUNT)]
 energy_pro_call = calc_producing(key=keys[0])
 print(energy_pro_call)
 HOURS_24 = needed_energy()
@@ -50,7 +50,7 @@ def tick():
     if current_energy > (needed + 1000):
         return
     for i in range(calls):
-        power_up(keys[random.randrange(0,4)])
+        power_up(keys[random.randrange(0,KRAFTWERK_COUNT-1)])
         current_energy += energy_pro_call
     print(f"Current energy: {current_energy}")
 
