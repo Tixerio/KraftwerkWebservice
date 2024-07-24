@@ -27,10 +27,8 @@ public class ConsumerBot : BackgroundService
                 Console.WriteLine("Not Registered, push any button to register");
                 Console.ReadKey(true);
                 powergrid.RegisterR();
-                while (powergrid.getID() == null)
-                {
-                    await Task.Delay(1000, stoppingToken);
-                }
+                await Task.Delay(1000, stoppingToken);
+                if (powergrid.getID() == null) continue;
             }
             powergrid.ChangeEnergyR();
             _logger.LogInformation("Has consumed");
@@ -94,6 +92,20 @@ public class Powergrid : IPowergrid, IAsyncInitialization
 
     public async void RegisterR()
     {
+        if (hub.State == HubConnectionState.Disconnected)
+        {
+            try
+            {
+                await hub.StartAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error: Server not running or not possible to connect...\n" +
+                                  "Wait a short moment and try again.");
+                return;
+            }
+        }
+
         await hub.SendAsync("RegisterR", new MemberObject("Household", "Consumer"));
         hub.On<string>("ReceiveMessage",
             message => this.ID = message);
@@ -115,7 +127,6 @@ public class Powergrid : IPowergrid, IAsyncInitialization
 
     public Task InitializationAsync()
     {
-        hub.StartAsync();
         return Task.CompletedTask;
     }
 
@@ -134,7 +145,7 @@ public class Powergrid : IPowergrid, IAsyncInitialization
 
 public class ApplicationOptions
 {
-    public const string Key = "HubCon"; 
+    public const string Key = "HubCon";
 
     [Required(ErrorMessage = "Address Required")]
     public string HubAddress { get; set; } }
@@ -142,12 +153,12 @@ public class ApplicationOptions
 
 public class ApplicationOptionsSetup : IConfigureOptions<ApplicationOptions>
 {
-    private const string SectionName = "HubCon"; 
+    private const string SectionName = "HubCon";
     private readonly IConfiguration _configuration;
 
     public ApplicationOptionsSetup(IConfiguration configuration)
     {
-        _configuration = configuration; 
+        _configuration = configuration;
     }
 
     public void Configure(ApplicationOptions options)

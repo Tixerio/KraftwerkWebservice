@@ -115,7 +115,6 @@
     LineChart<LiveDataPoint> horizontalLineChart;
     public Dictionary<string, string> Members { get; set; } = new();
     public Dictionary<string, int> MultiplicatorDictionary { get; set; } = new();
-
     public bool Stopped { get; set; } = false;
 
     private void OnDropdownChange(ChangeEventArgs e)
@@ -169,6 +168,21 @@
     public int Time { get; set; } = 0;
     public DateTime CurrentTime = new DateTime();
 
+    private async Task ConnectToHub()
+    {
+	    while (hub.State == HubConnectionState.Disconnected)
+	    {
+		    try
+		    {
+			    await hub.StartAsync();
+		    }
+		    catch (Exception ex)
+		    {
+			    Console.WriteLine("Error: Server not running or not possible to connect...");
+			    await Task.Delay(1000);
+		    }
+	    }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -176,7 +190,7 @@
             .WithUrl("https://localhost:7272/Powergrid")
             .Build();
 
-        await hub.StartAsync();
+        await ConnectToHub();
         await hub.SendAsync("GetMemberDataR");
         await hub.SendAsync("StartStop");
         hub.On<double>("ReceiveEnergy", async (message) =>
