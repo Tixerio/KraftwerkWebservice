@@ -77,9 +77,9 @@
 		            <label class="form-label align-self-center" style="margin-bottom: 0rem !important" for="pauseMidnightCheckbox">
 			            Stop at midnight: 
 		            </label>
-		            <InputCheckbox class="me-2" @bind-Value="@checkboxMidnightStop"  id="pauseMidnightCheckbox"/>
+		            <InputCheckbox class="me-3" @bind-Value="@checkboxMidnightStop"  id="pauseMidnightCheckbox"/>
 	            </div>
-	            <h3 class="my-auto">@CurrentTime.AddMinutes(Time).TimeOfDay</h3>
+	            <h3 class="my-auto me-4">@CurrentTime.AddMinutes(Time).TimeOfDay</h3>
             </div>
         </div>
         <div class="p-3">
