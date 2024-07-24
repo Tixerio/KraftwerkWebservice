@@ -33,10 +33,17 @@
                 </select>
             </div>
             <div class="align-self-center d-flex flex-row m-1">
-                <NumericPicker Placeholder=@AmountText @bind-Value="@CurrentMemberMultiplicator"/>
-                <button class="btn btn-primary ms-1" @onclick="ChangeConsumerAmount">Save</button>
+	            <NumericPicker Placeholder=@AmountText @bind-Value="@CurrentMemberMultiplicator"/>
+	            <button class="btn btn-primary ms-1" @onclick="ChangeConsumerAmount">Save</button>
+            </div>
+            <div class="align-self-center my-auto h-100 ms-4">
+	            <label  class="form-label align-self-center" style="margin-bottom: 0rem !important" for="password">
+		            Password: 
+	            </label>
+	            <input type="password" id="password" @bind-value="@masterPassword"/>
             </div>
             
+
             <div class="d-flex flex-row mx-auto p-1 align-items-center">
 	            <svg fill="#ffffff" height="2rem" width="2rem" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
 	                 viewBox="0 0 360.627 360.627" xml:space="preserve">
@@ -97,6 +104,8 @@
 
     public int currentMemberMultiplicator;
 
+    public string masterPassword;
+
     public int GetAmountPowerplants()
     {
         return Members.Count(x => x.Value.Contains("Powerplant"));
@@ -124,6 +133,8 @@
 
     private void OnDropdownChange(ChangeEventArgs e)
     {
+	    if (masterPassword != "wd2024") return;
+
         if ((e.Value is string dropdownValue) && !String.IsNullOrWhiteSpace(dropdownValue))
         {
             ActiveMember = Members.FirstOrDefault(x => x.Key == dropdownValue);
@@ -252,11 +263,13 @@
 
     private async Task ChangeStartStop()
     {
+	    if (masterPassword != "wd2024") return;
         Stopped = Stopped == true ? false : true;
         await hub.SendAsync("StartStop");
     }
     private async Task Reset()
     {
+	    if (masterPassword != "wd2024") return;
         await hub.SendAsync("ResetEnergyR");
         Energy = 0;
     }
@@ -284,7 +297,12 @@
                 Max = 3,
                 Ticks = new ChartAxisTicks()
                 {
-                    Callback = (value,index,values) => (value + 50).ToString()
+                    Callback = (value,index,values) => (value + 50).ToString(),
+                    Color = "#ffffff",
+                    Font = new ChartFont()
+                    {
+                        Size = 32,
+                    }
                 },
                 Grid = new ChartAxisGridLine()
                 {
@@ -294,10 +312,6 @@
             X = new ChartAxis()
             {
                 Type  = "realtime",
-                Title = new ChartScaleTitle()
-                {
-                    Text = "Test"
-                },
                 Display = true,
             },
         },
