@@ -19,7 +19,6 @@ public interface IPowergridHubClient
     Task ReceiveEnergy(double energy);
     Task ReceiveExpectedConsume(Dictionary<int, double> Plan);
     Task ReceiveBlackout();
-
     Task ReceivePieChartData(Dictionary<string, MarketShare> UserProduction);
 }
 
@@ -46,6 +45,7 @@ public class PowergridHub : Hub<IPowergridHubClient>
     {
         if (grid.TimeInInt == 5)
         {
+            //backend ist einen tick voraus, deswegen solls erst bei 5 clearn
             grid.Plan_User.Clear();
         }
         grid.Stopped = grid.Stopped == false ? true : false;
@@ -96,6 +96,7 @@ public class PowergridHub : Hub<IPowergridHubClient>
         {
             transformedMembers.Add(key, $"{value.Name}({value.GetType()})");
         }
+
         await Clients.All.ReceiveMembers(transformedMembers);
         await Clients.All.ReceiveMemberData(grid.MultiplicatorAmount);
         await Clients.Caller.ReceiveMessage(id);
@@ -103,7 +104,7 @@ public class PowergridHub : Hub<IPowergridHubClient>
 
     public async Task GetEnergyR()
     {
-        await Clients.Caller.ReceiveEnergy(grid.AvailableEnergy);
+        await Clients.Caller.ReceiveEnergy(Math.Round(grid.AvailableEnergy, 2));
     }
 
     public async Task ResetEnergyR()
@@ -142,12 +143,11 @@ public interface IMember
 
 public class Grid
 {
-    private readonly ILogger<Grid> _logger;
     public Dictionary<int, double> Plan_User { get; set; } = new();
     public Dictionary<int, double> Plan_Member { get; set; } = new();
     public Dictionary<string, IMember> Members { get; set; } = new();
-    public Environment Env { get; set; } = new(1, 1);
     public Dictionary<string, int> MultiplicatorAmount { get; set; } = new();
+    public Environment Env { get; set; } = new(1, 1);
     public int TimeInInt { get; set; } = 0;
     public bool Stopped { get; set; } = false;
     public bool ThreadStarted { get; set; } = false;
@@ -261,11 +261,12 @@ public class Grid
             foreach (var (key, value) in Members.Where(x => x.Value.GetType() == typeof(Consumer)))
             {
                 Plan_Member[i] -= (value.Energy *
-                    MultiplicatorAmount.FirstOrDefault(x => x.Key == key).Value + new Random().Next(100)) * new Random().Next(8, 15) /
+                    MultiplicatorAmount.FirstOrDefault(x => x.Key == key).Value + 
+                    new Random().Next(100)) * new Random().Next(8, 15) /
                     10 * ((Consumer)value).ConsumePercentDuringDayNight[i];
+
                 ((Consumer)value).Hour = i;
             }
-        
         }
     }
 
@@ -291,4 +292,3 @@ public class Grid
         return Plan_User;
     }
 }
-
