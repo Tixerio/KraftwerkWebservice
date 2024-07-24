@@ -11,14 +11,13 @@
 
 <PageTitle>Overview</PageTitle>
 <div class="d-flex align-content-center justify-content-center h-100 container">
-    <div class="row row-cols-2 h-100 w-100">
-        <div class="col"><ConsumptionChart Time="@Time" ConsumptionList="@expectedConsumption"></ConsumptionChart></div>
-        <div class="col"><MarketShareChart MarketShares="@marketShares"></MarketShareChart></div>
-        <div class="col"><ProductionChart ProductionList="@productionList"></ProductionChart></div>
-        <div class="col">
+    <div class="col h-100 w-100">
+        <div class="row w-100 h-50">
+            <ConsumptionChart Time="@Time" ConsumptionList="@expectedConsumption"></ConsumptionChart>
+            <MarketShareChart MarketShares="@marketShares"></MarketShareChart>
         </div>
+        <div class="row align-content-center w-100 h-50 d-flex"><ProductionChart ProductionList="@productionList"></ProductionChart></div>
     </div>
-
 </div>
 
 

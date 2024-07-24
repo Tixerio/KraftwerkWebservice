@@ -2,7 +2,7 @@
 @using Label = Vizor.ECharts.Label
 @using Tooltip = Vizor.ECharts.Tooltip
 
-<Vizor.ECharts.EChart CssClass="abs h-100 w-100" @ref="@chart" Options="@options"/>
+<Vizor.ECharts.EChart CssClass="abs h-100 w-50" @ref="@chart" Options="@options"/>
 
 @code {
     [Parameter] public Dictionary<string, (string,double)> MarketShares { get; set; } = new Dictionary<string, (string,double)>();
@@ -14,6 +14,12 @@
         Legend = new Legend
         {
             Show = false
+        },
+        Title = new Title()
+        {
+            Show = true,
+            Left = "center",
+            Text = "MarketShare"
         },
         Series = new List<ISeries>
         {
