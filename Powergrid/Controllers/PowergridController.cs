@@ -15,12 +15,17 @@ namespace Powergrid2.Controllers
             this.grid = grid;
         }
 
+        /// <summary>
+        /// Hello world
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns>changes energy</returns>
         [HttpPost("ChangeEnergy")]
         public IActionResult ChangeEnergy([FromBody] String request)
         {
             if(!grid.Members.ContainsKey(request))
             {
-                return StatusCode(418);
+                return StatusCode(401);
             }
 
             if(grid.Stopped)
