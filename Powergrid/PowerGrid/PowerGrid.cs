@@ -170,11 +170,6 @@ public class Grid
         }
     }
 
-    public Grid(ILogger<Grid> logger)
-    {
-        _logger = logger;
-    }
-
     public void GetClients(IHubCallerClients<IPowergridHubClient> clients)
     {
         Clients = clients;

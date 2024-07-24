@@ -7,6 +7,7 @@ public class ConsumerBot : BackgroundService
     private readonly IPowergrid powergrid;
     private CancellationToken stoppingToken;
     private ILogger<ConsumerBot> _logger;
+
     public ConsumerBot(IPowergrid powergrid, ILogger<ConsumerBot> logger)
     {
         this.powergrid = powergrid;
@@ -50,18 +51,8 @@ public interface IPowergrid
     public String getID();
 }
 
-public interface IAsyncInitialization
+public class Powergrid : IPowergrid
 {
-    public Task Initialization { get; }
-}
-
-public class Powergrid : IPowergrid, IAsyncInitialization
-{
-    private readonly HttpClient httpClient;
-    public Task Initialization { get; private set; }
-
-    private int Pulses { get; set; } = 1;
-
     public ILogger<Powergrid> _logger;
 
     public String? ID { get; set; }
@@ -76,10 +67,8 @@ public class Powergrid : IPowergrid, IAsyncInitialization
 
     public Powergrid(HttpClient httpClient, ILogger<Powergrid> logger, HubConnection hub)
     {
-        this.httpClient = httpClient;
         _logger = logger;
         this.hub = hub;
-        Initialization = InitializationAsync();
     }
 
     public async void StartClient()
@@ -119,15 +108,9 @@ public class Powergrid : IPowergrid, IAsyncInitialization
             {
                 if (message != "Registered")
                 {
-                    Pulses = 1;
                     this.ID = null;
                 }
             });
-    }
-
-    public Task InitializationAsync()
-    {
-        return Task.CompletedTask;
     }
 
     public class MemberObject
