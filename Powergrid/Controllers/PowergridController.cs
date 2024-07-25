@@ -22,12 +22,12 @@ namespace Powergrid2.Controllers
         /// <returns>changes energy</returns>
         /// <remarks>
         /// Beispiel:
-        /// 
-        ///     Post Input:
+        ///
+        ///     Input:
         ///     {
         ///        "id"
         ///     }
-        /// 
+        ///
         /// </remarks>
         /// <response code="200">Changes the Energy in the powergrid by a certain value / Returns "Registered"</response>
         /// <response code="401">Either not registered or the server hasnt been started or isnt reachable</response>
@@ -63,8 +63,8 @@ namespace Powergrid2.Controllers
         /// <returns>changes energy</returns>
         /// <remarks>
         /// Beispiel:
-        /// 
-        ///     Get Output:
+        ///
+        ///    Output:
         ///    {
         ///         "0": 0,
         ///         "1": 0,
@@ -91,7 +91,7 @@ namespace Powergrid2.Controllers
         ///         "22": 0,
         ///         "23": 0
         ///    }
-        /// 
+        ///
         /// </remarks>
         /// <response code="200">Returned the expected consumption for the current day"</response>
         [HttpGet("GetExpectedConsume")]
@@ -107,12 +107,12 @@ namespace Powergrid2.Controllers
         /// <returns>changes energy</returns>
         /// <remarks>
         /// Beispiel:
-        /// 
-        ///     Get output:
+        ///
+        ///     Output:
         ///     {
         ///        "246"
         ///     }
-        /// 
+        ///
         /// </remarks>
         /// <response code="200">Successfully returned the current energy in the system</response>
         [HttpGet("GetEnergy")]
@@ -128,12 +128,12 @@ namespace Powergrid2.Controllers
         /// <returns>changes energy</returns>
         /// <remarks>
         /// Beispiel:
-        /// 
-        ///     Get output:
+        ///
+        ///     Output:
         ///     {
         ///        "21"
         ///     }
-        /// 
+        ///
         /// </remarks>
         /// <response code="200">Successfully returned the current time of the system</response>
         [HttpGet("GetTime")]
@@ -149,13 +149,13 @@ namespace Powergrid2.Controllers
         /// <returns>changes energy</returns>
         /// <remarks>
         /// Beispiel:
-        /// 
-        ///     Post input:
+        ///
+        ///     Input:
         ///     {
         ///        "name": "MyPowerplant",
         ///        "type": "Powerplant"
         ///     }
-        /// 
+        ///
         /// </remarks>
         /// <response code="200">Successfully registered to the powergrid</response>
         /// <response code="406">Couldnt register to the powergrid, might have not used "Powerplant" as type</response>
