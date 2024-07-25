@@ -9,6 +9,7 @@
 	<GenerateDocumentationFile>true</GenerateDocumentationFile>
 	<!-- Ensure XML documentation is generated -->
 	<NoWarn>$(NoWarn);SA0001</NoWarn>
+	<DocumentationFile>.\bin\$(Configuration)\$(AssemblyName).xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

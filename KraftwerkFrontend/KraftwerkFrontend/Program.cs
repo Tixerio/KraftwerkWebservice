@@ -17,6 +17,7 @@ builder.Services
     })
     .AddBootstrap5Providers()
     .AddFontAwesomeIcons();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
